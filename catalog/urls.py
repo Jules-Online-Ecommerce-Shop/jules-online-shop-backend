@@ -12,4 +12,9 @@ urlpatterns = [
         views.CategoryDetailView.as_view(),
         name="category-detail"
     ),
+    path(
+        "products/",
+        views.ProductListView.as_view(),
+        name="product-list"
+    )
 ]
