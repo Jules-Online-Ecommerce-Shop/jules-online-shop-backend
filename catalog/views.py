@@ -65,3 +65,12 @@ class ProductListView(ListAPIView):
             filters &= Q(stock_quantity__gt=0)
 
         return qs.filter(filters)
+
+
+class ProductDetailView(RetrieveAPIView):
+    """
+    Retrieve a single product by its slug.
+    """
+    queryset = Product.objects.prefetch_related("images", "category")
+    serializer_class = ProductSerializer
+    lookup_field = "slug"
