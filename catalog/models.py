@@ -79,3 +79,66 @@ class Category(BaseModel):
 
     def __str__(self):
         return self.name
+
+
+class Product(BaseModel):
+    """
+    Represents a product in the catalog
+    """
+    name = models.CharField(max_length=255)
+    slug = models.SlugField(max_length=255, unique=True, blank=True)
+    description = models.TextField(blank=True)
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+    category = models.ForeignKey(
+        Category,
+        on_delete=models.PROTECT,
+        related_name="products"
+    )
+    brand = models.CharField(max_length=255, blank=True)
+    imported_from = models.CharField(max_length=255, blank=True)
+    stock_quantity = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ["name"]
+        indexes = [
+            models.Index(fields=["slug"])
+        ]
+
+    def save(self, *args, **kwargs):
+        # Auto-generate slug from name if not provided
+        if not self.slug:
+            base_slug = slugify(self.name)
+            slug = base_slug
+            counter = 1
+            # Ensure slug is unique
+            while Product.objects.filter(slug=slug).exists():
+                slug = f"{base_slug}-{counter}"
+                counter += 1
+            self.slug = slug
+
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.name
+
+
+class ProductImage(BaseModel):
+    """
+    Represents an image for a product.
+    A product can have multiple images.
+    """
+
+    product = models.ForeignKey(
+        Product,
+        on_delete=models.CASCADE,
+        related_name="images"
+    )
+    image = models.ImageField(upload_to="products/images/")
+    alt_text = models.CharField(max_length=255, blank=True)
+    is_featured = models.BooleanField(default=False)
+
+    class Meta:
+        ordering = ["-is_featured", "id"]
+
+    def __str__(self):
+        return f"{self.product.name} - {self.alt_text or 'Image'}"
