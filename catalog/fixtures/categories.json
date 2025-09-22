@@ -1,0 +1,132 @@
+[
+  {
+    "model": "catalog.category",
+    "pk": "11111111-1111-1111-1111-111111111111",
+    "fields": {
+      "name": "Clothing",
+      "slug": "clothing",
+      "description": "All clothing items",
+      "parent": null,
+      "full_slug": "clothing",
+      "created_at": "2025-09-22T12:00:00Z",
+      "updated_at": "2025-09-22T12:00:00Z"
+    }
+  },
+  {
+    "model": "catalog.category",
+    "pk": "22222222-2222-2222-2222-222222222222",
+    "fields": {
+      "name": "Men",
+      "slug": "men",
+      "description": "Men's clothing",
+      "parent": "11111111-1111-1111-1111-111111111111",
+      "full_slug": "clothing/men",
+      "created_at": "2025-09-22T12:00:00Z",
+      "updated_at": "2025-09-22T12:00:00Z"
+    }
+  },
+  {
+    "model": "catalog.category",
+    "pk": "33333333-3333-3333-3333-333333333333",
+    "fields": {
+      "name": "Women",
+      "slug": "women",
+      "description": "Women's clothing",
+      "parent": "11111111-1111-1111-1111-111111111111",
+      "full_slug": "clothing/women",
+      "created_at": "2025-09-22T12:00:00Z",
+      "updated_at": "2025-09-22T12:00:00Z"
+    }
+  },
+  {
+    "model": "catalog.category",
+    "pk": "44444444-4444-4444-4444-444444444444",
+    "fields": {
+      "name": "Shirts",
+      "slug": "shirts",
+      "description": "All shirts",
+      "parent": "22222222-2222-2222-2222-222222222222",
+      "full_slug": "clothing/men/shirts",
+      "created_at": "2025-09-22T12:00:00Z",
+      "updated_at": "2025-09-22T12:00:00Z"
+    }
+  },
+  {
+    "model": "catalog.category",
+    "pk": "55555555-5555-5555-5555-555555555555",
+    "fields": {
+      "name": "Pants",
+      "slug": "pants",
+      "description": "All pants",
+      "parent": "22222222-2222-2222-2222-222222222222",
+      "full_slug": "clothing/men/pants",
+      "created_at": "2025-09-22T12:00:00Z",
+      "updated_at": "2025-09-22T12:00:00Z"
+    }
+  },
+  {
+    "model": "catalog.category",
+    "pk": "66666666-6666-6666-6666-666666666666",
+    "fields": {
+      "name": "Dresses",
+      "slug": "dresses",
+      "description": "All dresses",
+      "parent": "33333333-3333-3333-3333-333333333333",
+      "full_slug": "clothing/women/dresses",
+      "created_at": "2025-09-22T12:00:00Z",
+      "updated_at": "2025-09-22T12:00:00Z"
+    }
+  },
+  {
+    "model": "catalog.category",
+    "pk": "77777777-7777-7777-7777-777777777777",
+    "fields": {
+      "name": "Skirts",
+      "slug": "skirts",
+      "description": "All skirts",
+      "parent": "33333333-3333-3333-3333-333333333333",
+      "full_slug": "clothing/women/skirts",
+      "created_at": "2025-09-22T12:00:00Z",
+      "updated_at": "2025-09-22T12:00:00Z"
+    }
+  },
+  {
+    "model": "catalog.category",
+    "pk": "88888888-8888-8888-8888-888888888888",
+    "fields": {
+      "name": "Accessories",
+      "slug": "accessories",
+      "description": "All accessories",
+      "parent": null,
+      "full_slug": "accessories",
+      "created_at": "2025-09-22T12:00:00Z",
+      "updated_at": "2025-09-22T12:00:00Z"
+    }
+  },
+  {
+    "model": "catalog.category",
+    "pk": "99999999-9999-9999-9999-999999999999",
+    "fields": {
+      "name": "Shoes",
+      "slug": "shoes",
+      "description": "All shoes",
+      "parent": null,
+      "full_slug": "shoes",
+      "created_at": "2025-09-22T12:00:00Z",
+      "updated_at": "2025-09-22T12:00:00Z"
+    }
+  },
+  {
+    "model": "catalog.category",
+    "pk": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+    "fields": {
+      "name": "Bags",
+      "slug": "bags",
+      "description": "All bags",
+      "parent": "88888888-8888-8888-8888-888888888888",
+      "full_slug": "accessories/bags",
+      "created_at": "2025-09-22T12:00:00Z",
+      "updated_at": "2025-09-22T12:00:00Z"
+    }
+  }
+]

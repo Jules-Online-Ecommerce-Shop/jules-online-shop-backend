@@ -16,8 +16,20 @@ Including another URLconf
 """
 
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
+from jules_shop.settings import DEBUG
+from django.conf import settings
+from django.conf.urls.static import static
+
+base_url: str = "api/v1"
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+    path(f"{base_url}/", include("catalog.urls"))
 ]
+
+if DEBUG:
+    urlpatterns += static(
+        settings.MEDIA_URL,
+        document_root=settings.MEDIA_ROOT
+    )
