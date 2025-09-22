@@ -1,17 +1,18 @@
 from django.contrib import admin
 from django.utils.html import format_html
 from catalog.models import Category, Product, ProductImage
+from unfold.admin import ModelAdmin, TabularInline
 
 
 @admin.register(Category)
-class CategoryAdmin(admin.ModelAdmin):
+class CategoryAdmin(ModelAdmin):
     list_display = ("name", "full_slug", "parent")
     search_fields = ("name", "slug")
     list_filter = ("parent",)
     prepopulated_fields = {"slug": ("name",)}
 
 
-class ProductImageInline(admin.TabularInline):
+class ProductImageInline(TabularInline):
     model = ProductImage
     extra = 1
     readonly_fields = ("image_tag",)
@@ -24,7 +25,7 @@ class ProductImageInline(admin.TabularInline):
 
 
 @admin.register(Product)
-class ProductAdmin(admin.ModelAdmin):
+class ProductAdmin(ModelAdmin):
     list_display = ("name", "slug", "price", "stock_quantity", "category", "brand", "is_active")
     search_fields = ("name", "slug", "brand")
     list_filter = ("category", "brand", "is_active")
@@ -33,7 +34,7 @@ class ProductAdmin(admin.ModelAdmin):
 
 
 @admin.register(ProductImage)
-class ProductImageAdmin(admin.ModelAdmin):
+class ProductImageAdmin(ModelAdmin):
     list_display = ("id", "product", "image_tag")
     list_filter = ("product",)
     readonly_fields = ("image_tag",)
