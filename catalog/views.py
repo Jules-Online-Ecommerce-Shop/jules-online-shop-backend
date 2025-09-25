@@ -61,8 +61,16 @@ class ProductListView(ListAPIView):
             filters &= Q(price__gte=params["min_price"])
         if "max_price" in params:
             filters &= Q(price__lte=params["max_price"])
+        if "stock_quantity" in params:
+            filters &= Q(stock_quantity__gte=params["stock_quantity"])
         if params.get("in_stock") is True:
             filters &= Q(stock_quantity__gt=0)
+
+        # Ordering
+        ordering = params.get("ordering", "name")
+        allowed_fields = ["name", "price", "stock_quantity"]
+        if ordering.lstrip('-') in allowed_fields:
+            qs = qs.order_by(ordering)
 
         return qs.filter(filters)
 
