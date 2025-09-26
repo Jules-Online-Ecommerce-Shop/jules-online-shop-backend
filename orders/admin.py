@@ -1,16 +1,15 @@
 from django.contrib import admin
 from orders.models import Order, OrderItem
 from unfold.admin import ModelAdmin, TabularInline
+from unfold.decorators import action
 from rest_framework.request import Request
 from django.db.models import QuerySet
 
 
 class OrderItemInline(TabularInline):
     model = OrderItem
-    extra = 0
+    extra = 1
     readonly_fields = (
-        "product",
-        "quantity",
         "price_snapshot",
         "created_at",
         "updated_at",
@@ -38,7 +37,7 @@ class OrderAdmin(ModelAdmin):
         "shipping_address_line1",
         "shipping_region",
     )
-    readonly_fields = ("created_at", "updated_at")
+    readonly_fields = ("total_price", "created_at", "updated_at")
     inlines = [OrderItemInline]
 
     # Optimization: reduce queries
@@ -48,7 +47,7 @@ class OrderAdmin(ModelAdmin):
     autocomplete_fields = ("user",)
 
     # Custom action
-    @admin.action(description="Mark selected orders as shipped")
+    @action(description="Mark selected orders as shipped")
     def mark_as_shipped(
         self,
         request: Request,
@@ -59,7 +58,7 @@ class OrderAdmin(ModelAdmin):
             request, f"{updated} order(s) successfully marked as shipped."
         )
 
-    @admin.action(description="Mark selected orders as delivered")
+    @action(description="Mark selected orders as delivered")
     def mark_as_delivered(
         self,
         request: Request,
@@ -68,7 +67,7 @@ class OrderAdmin(ModelAdmin):
         updated = queryset.update(status="delivered")
         self.message_user(request, f"{updated} orders marked as delivered.")
 
-    actions = [mark_as_shipped, mark_as_delivered]
+    actions = ["mark_as_shipped", "mark_as_delivered"]
 
     fieldsets = [
         ("Order Info", {"fields": ["user", "status", "total_price"]}),
@@ -77,7 +76,7 @@ class OrderAdmin(ModelAdmin):
                 "shipping_name",
                 "shipping_address_line1",
                 "shipping_address_line2",
-                "shipping_city",
+                "shipping_digital_address",
                 "shipping_region",
                 "shipping_country",
             ]
@@ -99,6 +98,11 @@ class OrderItemAdmin(ModelAdmin):
     list_filter = ("created_at", "updated_at")
     search_fields = ("order__id", "product__name")
     readonly_fields = ("created_at", "updated_at")
+
+    list_display_links = ("id", "order")
+    ordering = ("-created_at",)
+
+    icon_name = "package"
 
     # Optimization
     list_select_related = ("order", "product")
