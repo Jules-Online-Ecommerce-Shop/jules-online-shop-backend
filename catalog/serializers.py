@@ -55,6 +55,7 @@ class ProductSerializer(serializers.ModelSerializer):
 
 
 class ProductFilterSerializer(serializers.Serializer):
+    ordering = serializers.CharField(required=False)
     category = serializers.CharField(required=False)
     brand = serializers.CharField(required=False)
     min_price = serializers.DecimalField(
