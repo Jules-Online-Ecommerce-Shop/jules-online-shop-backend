@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth import get_user_model
 from core.models import BaseModel
+from typing import Any
 
 User = get_user_model()
 
@@ -52,6 +53,10 @@ class OrderItem(BaseModel):
     )
     quantity = models.PositiveIntegerField()
     price_snapshot = models.DecimalField(max_digits=10, decimal_places=2)
+
+    @property
+    def subtotal(self) -> Any:
+        return self.price_snapshot * self.quantity
 
     def __str__(self) -> str:
         return f"{self.product.name} x {self.quantity}"
