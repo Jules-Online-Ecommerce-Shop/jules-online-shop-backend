@@ -16,7 +16,7 @@ class User(AbstractUser, BaseModel):
     USERNAME_FIELD = "email"         # Login with email
     REQUIRED_FIELDS = ["username"]   # Username still required for superusers
 
-    objects: ClassVar[CustomUserManager] = CustomUserManager()  # type: ignore[assignment]
+    objects: ClassVar[CustomUserManager] = CustomUserManager()
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{self.username} ({self.email})"
