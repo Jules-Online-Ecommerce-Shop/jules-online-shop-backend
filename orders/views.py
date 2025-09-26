@@ -44,9 +44,7 @@ class OrderListCreateView(ListCreateAPIView[Order]):
 
         # Ordering
         ordering = params.get("ordering", "-created_at")
-        allowed_fields = ["total_price", "created_at"]
-        if ordering.lstrip("-") in allowed_fields:
-            qs = qs.order_by(ordering)
+        qs = qs.order_by(ordering)
 
         return qs
 
