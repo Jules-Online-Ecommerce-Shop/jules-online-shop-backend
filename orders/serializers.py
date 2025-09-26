@@ -40,8 +40,7 @@ class OrderSerializer(serializers.ModelSerializer[Order]):
             "total_price",
             "created_at",
             "updated_at",
-            "user",
-            "order_items"
+            "user"
         ]
 
 
