@@ -68,9 +68,7 @@ class ProductListView(ListAPIView[Product]):
 
         # Ordering
         ordering = params.get("ordering", "name")
-        allowed_fields = ["name", "price", "stock_quantity"]
-        if ordering.lstrip('-') in allowed_fields:
-            qs = qs.order_by(ordering)
+        qs = qs.order_by(ordering)
 
         return qs.filter(filters)
 
