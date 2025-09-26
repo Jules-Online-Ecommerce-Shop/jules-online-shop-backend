@@ -43,7 +43,7 @@ class OrderListCreateView(ListCreateAPIView[Order]):
 
         qs: QuerySet[Order] = (
             Order.objects.filter(filters, user=user)
-            .prefetch_related("order_items")
+            .prefetch_related("order_items__product__images")
             .annotate(items_count=Count("order_items"))
         )
 
@@ -71,7 +71,9 @@ class OrderDetailView(RetrieveUpdateDestroyAPIView[Order]):
     def get_queryset(self) -> QuerySet[Order]:
         user = self.request.user
         assert not isinstance(user, AnonymousUser)
-        return Order.objects.filter(user=user).prefetch_related("order_items__product")
+        return Order.objects.filter(user=user).prefetch_related(
+            "order_items__product__images"
+        )
 
     def perform_update(self, serializer: BaseSerializer[Order]) -> None:
         order = self.get_object()

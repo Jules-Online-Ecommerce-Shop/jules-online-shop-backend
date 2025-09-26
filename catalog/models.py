@@ -2,6 +2,8 @@ from django.db import models
 from core.models import BaseModel
 from django.utils.text import slugify
 
+from typing import Any
+
 
 class Category(BaseModel):
     """
@@ -24,7 +26,7 @@ class Category(BaseModel):
     )
     full_slug = models.CharField(max_length=500, unique=True, editable=False)
 
-    class Meta:  # type: ignore
+    class Meta:
         verbose_name_plural = "Categories"
         unique_together = ["slug", "parent"]
         ordering = ["name"]
@@ -32,7 +34,7 @@ class Category(BaseModel):
             models.Index(fields=["full_slug"])
         ]
 
-    def save(self, *args, **kwargs):
+    def save(self, *args: Any, **kwargs: Any) -> None:
         force_update = kwargs.pop("force_full_slug_update", False)
 
         # Generate slug if empty
@@ -77,7 +79,7 @@ class Category(BaseModel):
 
         return "/".join(parts)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.name
 
 
@@ -104,7 +106,7 @@ class Product(BaseModel):
             models.Index(fields=["slug"])
         ]
 
-    def save(self, *args, **kwargs):
+    def save(self, *args: Any, **kwargs: Any) -> None:
         # Auto-generate slug from name if not provided
         if not self.slug:
             base_slug = slugify(self.name)
@@ -118,7 +120,7 @@ class Product(BaseModel):
 
         super().save(*args, **kwargs)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.name
 
 
@@ -140,5 +142,5 @@ class ProductImage(BaseModel):
     class Meta:
         ordering = ["-is_featured", "id"]
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{self.product.name} - {self.alt_text or 'Image'}"

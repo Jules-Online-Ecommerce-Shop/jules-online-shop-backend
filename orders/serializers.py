@@ -1,18 +1,39 @@
 from rest_framework import serializers
 from orders.models import Order, OrderItem
+from catalog.models import Product
+from catalog.serializers import ProductImageSerializer
 
 from typing import Any
 
 
+class ProductSummarySerializer(serializers.ModelSerializer[Product]):
+    image = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Product
+        fields = ['id', 'name', 'slug', 'thumbnail_url']
+
+    def get_image(self, obj: Product) -> Any | None:
+        first_image = obj.images.filter(is_featured=True).first()
+        if not first_image:
+            first_image = obj.images.first() or None
+
+        serializer = ProductImageSerializer(first_image)
+        return serializer.data
+
+
 class OrderItemSerializer(serializers.ModelSerializer[OrderItem]):
-    product_name = serializers.CharField(source="product.name")
+    product_summary = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = OrderItem
         fields = [
-            "id", "product", "quantity", "product_name", "price_snapshot"
+            "id", "product", "quantity", "product_summary", "price_snapshot"
         ]
-        read_only_fields = ["id", "product_name", "price_snapshot"]
+        read_only_fields = ["id", "product_summary", "price_snapshot"]
+
+    def get_product_summary(self, obj: OrderItem) -> Any:
+        return ProductSummarySerializer(obj.product).data
 
 
 class OrderSerializer(serializers.ModelSerializer[Order]):
@@ -58,7 +79,7 @@ class OrderSummaryListSerializer(serializers.ModelSerializer[Order]):
             "items_count",
         ]
         read_only_fields = fields
- 
+
     def get_items_count(self, obj: Order) -> int | Any:
         return obj.items_count
 
