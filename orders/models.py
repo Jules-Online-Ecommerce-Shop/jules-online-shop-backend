@@ -69,6 +69,11 @@ class OrderItem(BaseModel):
     quantity = models.PositiveIntegerField()
     price_snapshot = models.DecimalField(max_digits=10, decimal_places=2)
 
+    def save(self, *args: Any, **kwargs: Any) -> None:
+        if not self.price_snapshot == self.product.price:
+            self.price_snapshot = self.product.price
+        super().save(*args, **kwargs)
+
     @property
     def subtotal(self) -> Any:
         return self.price_snapshot * self.quantity
