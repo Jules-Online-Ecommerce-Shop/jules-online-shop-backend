@@ -46,6 +46,7 @@ class OrderSerializer(serializers.ModelSerializer[Order]):
 
 
 class OrderSummaryListSerializer(serializers.ModelSerializer[Order]):
+    items_count = serializers.SerializerMethodField()
 
     class Meta:
         model = Order
@@ -58,6 +59,9 @@ class OrderSummaryListSerializer(serializers.ModelSerializer[Order]):
             "items_count",
         ]
         read_only_fields = fields
+ 
+    def get_items_count(self, obj: Order) -> int | Any:
+        return obj.items_count
 
 
 class OrderFilterSerializer(serializers.Serializer[Any]):
