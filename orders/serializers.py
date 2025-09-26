@@ -11,7 +11,7 @@ class ProductSummarySerializer(serializers.ModelSerializer[Product]):
 
     class Meta:
         model = Product
-        fields = ['id', 'name', 'slug', 'thumbnail_url']
+        fields = ["id", "name", "slug", "image"]
 
     def get_image(self, obj: Product) -> Any | None:
         first_image = obj.images.filter(is_featured=True).first()
