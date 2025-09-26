@@ -1,5 +1,10 @@
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.generics import ListCreateAPIView, RetrieveAPIView
+from rest_framework.generics import (
+    ListCreateAPIView,
+    RetrieveUpdateDestroyAPIView
+)
+from rest_framework.exceptions import PermissionDenied
+from rest_framework.serializers import BaseSerializer
 from django.db.models import Q, QuerySet, Count
 from django.contrib.auth.models import AnonymousUser
 from orders.models import Order
@@ -59,7 +64,7 @@ class OrderListCreateView(ListCreateAPIView[Order]):
         serializer.save(user=self.request.user)
 
 
-class OrderDetailView(RetrieveAPIView[Order]):
+class OrderDetailView(RetrieveUpdateDestroyAPIView[Order]):
     permission_classes = [IsAuthenticated]
     serializer_class = OrderSerializer
 
@@ -67,3 +72,14 @@ class OrderDetailView(RetrieveAPIView[Order]):
         user = self.request.user
         assert not isinstance(user, AnonymousUser)
         return Order.objects.filter(user=user).prefetch_related("order_items__product")
+
+    def perform_update(self, serializer: BaseSerializer[Order]) -> None:
+        order = self.get_object()
+        if order.status != "pending":
+            raise PermissionDenied("Only pending orders can be updated.")
+        serializer.save()
+
+    def perform_destroy(self, instance: Order) -> None:
+        if instance.status != "pending":
+            raise PermissionDenied("Only pending orders can be cancelled (deleted).")
+        instance.delete()
