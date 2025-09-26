@@ -25,7 +25,8 @@ base_url: str = "api/v1"
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path(f"{base_url}/", include("catalog.urls"))
+    path(f"{base_url}/catalog/", include("catalog.urls")),
+    path(f"{base_url}/orders/", include("orders.urls"))
 ]
 
 if DEBUG:
