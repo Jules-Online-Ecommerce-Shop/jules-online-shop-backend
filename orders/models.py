@@ -37,6 +37,21 @@ class Order(BaseModel):
     shipping_region = models.CharField(max_length=100)
     shipping_country = models.CharField(max_length=100, default="GHANA")
 
+    def save(self, *args: Any, **kwargs: Any) -> None:
+        """
+        Failsafe: Always recalculate total_price before saving
+        to prevent drift if signals don't fire.
+        """
+        if self.pk and self.total_price:  # only recalc if order already exists
+            total = (
+                self.order_items.aggregate(
+                    total=models.Sum(models.F("price_snapshot") * models.F("quantity"))
+                )["total"] or 0
+            )
+            self.total_price = total
+
+        super().save(*args, **kwargs)
+
     def __str__(self) -> str:
         return f"Order {self.id} - {self.user.email}"
 
