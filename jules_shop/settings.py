@@ -69,6 +69,12 @@ REST_FRAMEWORK = {
     'PAGE_SIZE': 10,
 }
 
+UNFOLD = {
+    "SITE_TITLE": "Jules Online Shop Admin",
+    "SITE_HEADER": "Jules Shop Admin",
+    # "DASHBOARD_CALLBACK": "orders.dashboard.dashboard_callback",
+}
+
 
 # Cors allowed origins
 CORS_ALLOW_ALL_ORIGINS = True
@@ -79,7 +85,7 @@ ROOT_URLCONF = "jules_shop.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        "DIRS": [BASE_DIR / "templates"],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
