@@ -10,7 +10,7 @@ def dashboard_callback(request: Request, context: Any) -> Any:
     pending = Order.objects.filter(status="pending").count()
     shipped = Order.objects.filter(status="shipped").count()
     delivered = Order.objects.filter(status="delivered").count()
-    canceled = Order.objects.filter(status="canceled").count()
+    cancelled = Order.objects.filter(status="cancelled").count()
 
     total_sales = (
         Order.objects.filter(status="delivered")
@@ -22,7 +22,7 @@ def dashboard_callback(request: Request, context: Any) -> Any:
     context["orders_pending"] = pending
     context["orders_shipped"] = shipped
     context["orders_delivered"] = delivered
-    context["orders_canceled"] = canceled
+    context["orders_cancelled"] = cancelled
     context["total_sales"] = total_sales
 
     return context
