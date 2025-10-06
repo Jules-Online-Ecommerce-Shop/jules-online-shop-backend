@@ -24,11 +24,11 @@ Backend for a client e-commerce project using Django and Django REST Framework (
 
 This project is the backend for **Jules Online Shop**, an e-commerce platform that supports:
 
-- ✅ User authentication and management  
-- 🛒 Product catalog with categories and images  
-- 🧺 Shopping cart management  
-- 📦 Order management and order history  
-- 💳 Payment processing with transaction tracking  
+- ✅ User authentication and management
+- 🛒 Product catalog with categories and images
+- 🧺 Shopping cart management
+- 📦 Order management and order history
+- 💳 Payment processing with transaction tracking
 
 Built with Django and Django REST Framework, designed to integrate seamlessly with a React frontend.
 
@@ -36,24 +36,24 @@ Built with Django and Django REST Framework, designed to integrate seamlessly wi
 
 ## ✨ Features
 
-- **Users**: Custom user model with email, phone number, and addresses  
-- **Catalog**: Products, categories, and multiple product images  
-- **Cart**: Session-based shopping cart with multiple items  
-- **Orders**: Checkout process and complete order history  
-- **Payments**: Tracks transactions, status, and timestamps  
-- **JWT Authentication**: Secure token-based authentication  
+- **Users**: Custom user model with email, phone number, and addresses
+- **Catalog**: Products, categories, and multiple product images
+- **Cart**: Session-based shopping cart with multiple items
+- **Orders**: Checkout process and complete order history
+- **Payments**: Tracks transactions, status, and timestamps
+- **JWT Authentication**: Secure token-based authentication
 
 ---
 
 ## 🧰 Tech Stack
 
-- Python 3.11  
-- Django 4.2  
-- Django REST Framework 3.15   
-- Pillow (image handling)  
-- `django-cors-headers` (frontend integration)  
-- DRF Simple JWT (authentication)  
-- Dev Tools: `black`, `isort`, `flake8`  
+- Python 3.11
+- Django 4.2
+- Django REST Framework 3.15
+- Pillow (image handling)
+- `django-cors-headers` (frontend integration)
+- DRF Simple JWT (authentication)
+- Dev Tools: `black`, `isort`, `flake8`
 
 ---
 
@@ -61,8 +61,8 @@ Built with Django and Django REST Framework, designed to integrate seamlessly wi
 
 ### ✅ Prerequisites
 
-- Python 3.11+ installed  
-- Poetry installed ([Basic usage guide](https://python-poetry.org/docs/basic-usage/))   
+- Python 3.11+ installed
+- Poetry installed ([Basic usage guide](https://python-poetry.org/docs/basic-usage/))
 
 ### 📦 Installation
 
@@ -146,20 +146,20 @@ Use `python-decouple` or `django-environ` to load these variables in Django.
 
 ## 🤝 Contributing
 
-1. Fork the repository  
-2. Create a new branch:  
+1. Fork the repository
+2. Create a new branch:
    ```bash
    git checkout -b feature/your-feature
    ```
-3. Make your changes and commit:  
+3. Make your changes and commit:
    ```bash
    git commit -m 'Add feature'
    ```
-4. Push to your branch:  
+4. Push to your branch:
    ```bash
    git push origin feature/your-feature
    ```
-5. Open a pull request  
+5. Open a pull request
 
 ---
 

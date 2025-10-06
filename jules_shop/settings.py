@@ -40,11 +40,11 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    
+
     # Packages
     "rest_framework",
     "corsheaders",
-    
+
     # Custom apps
     "cart.apps.CartConfig",
     "catalog.apps.CatalogConfig",
@@ -64,6 +64,18 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
+REST_FRAMEWORK = {
+    'DEFAULT_PAGINATION_CLASS': 'core.pagination.GlobalPagination',
+    'PAGE_SIZE': 10,
+}
+
+UNFOLD = {
+    "SITE_TITLE": "Jules Online Shop Admin",
+    "SITE_HEADER": "Jules Shop Admin",
+    # "DASHBOARD_CALLBACK": "orders.dashboard.dashboard_callback",
+}
+
+
 # Cors allowed origins
 CORS_ALLOW_ALL_ORIGINS = True
 
@@ -73,7 +85,7 @@ ROOT_URLCONF = "jules_shop.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        "DIRS": [BASE_DIR / "templates"],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [

@@ -4,11 +4,11 @@ from catalog.serializers import (
     ProductFilterSerializer,
     ProductSerializer
 )
-from django.db.models import Q
+from django.db.models import Q, QuerySet
 from catalog.models import Category, Product
 
 
-class CategoryListView(ListAPIView):
+class CategoryListView(ListAPIView[Category]):
     """
     Returns all root categories with nested children
     """
@@ -21,7 +21,7 @@ class CategoryListView(ListAPIView):
     )
 
 
-class CategoryDetailView(RetrieveAPIView):
+class CategoryDetailView(RetrieveAPIView[Category]):
     """
     Retrieve a single category by full_slug with nested children
     """
@@ -34,7 +34,7 @@ class CategoryDetailView(RetrieveAPIView):
     )
 
 
-class ProductListView(ListAPIView):
+class ProductListView(ListAPIView[Product]):
     """
     Returns all active products.
     Supports filtering via query params validated by a serializer.
@@ -44,7 +44,7 @@ class ProductListView(ListAPIView):
         is_active=True
     ).prefetch_related("images", "category")
 
-    def get_queryset(self):
+    def get_queryset(self) -> QuerySet[Product]:
         qs = super().get_queryset()
         filter_serializer: ProductFilterSerializer = ProductFilterSerializer(
             data=self.request.query_params
@@ -61,13 +61,19 @@ class ProductListView(ListAPIView):
             filters &= Q(price__gte=params["min_price"])
         if "max_price" in params:
             filters &= Q(price__lte=params["max_price"])
+        if "stock_quantity" in params:
+            filters &= Q(stock_quantity__gte=params["stock_quantity"])
         if params.get("in_stock") is True:
             filters &= Q(stock_quantity__gt=0)
+
+        # Ordering
+        ordering = params.get("ordering", "name")
+        qs = qs.order_by(ordering)
 
         return qs.filter(filters)
 
 
-class ProductDetailView(RetrieveAPIView):
+class ProductDetailView(RetrieveAPIView[Product]):
     """
     Retrieve a single product by its slug.
     """

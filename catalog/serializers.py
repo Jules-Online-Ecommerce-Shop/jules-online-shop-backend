@@ -1,8 +1,9 @@
 from rest_framework import serializers
 from catalog.models import Category, Product, ProductImage
+from typing import Any
 
 
-class CategorySerializer(serializers.ModelSerializer):
+class CategorySerializer(serializers.ModelSerializer[Category]):
     children = serializers.SerializerMethodField()
 
     class Meta:
@@ -17,7 +18,7 @@ class CategorySerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ["children"]
 
-    def get_children(self, obj: Category):
+    def get_children(self, obj: Category) -> Any:
         return CategorySerializer(
             obj.children.all(),
             many=True,
@@ -25,13 +26,13 @@ class CategorySerializer(serializers.ModelSerializer):
         ).data
 
 
-class ProductImageSerializer(serializers.ModelSerializer):
+class ProductImageSerializer(serializers.ModelSerializer[ProductImage]):
     class Meta:
         model = ProductImage
         fields = ["id", "image", "alt_text", "is_featured"]
 
 
-class ProductSerializer(serializers.ModelSerializer):
+class ProductSerializer(serializers.ModelSerializer[Product]):
     images = ProductImageSerializer(many=True, read_only=True)
     category_name = serializers.CharField(source="category.name", read_only=True)
     category_slug = serializers.CharField(source="category.slug", read_only=True)
@@ -54,7 +55,18 @@ class ProductSerializer(serializers.ModelSerializer):
         ]
 
 
-class ProductFilterSerializer(serializers.Serializer):
+class ProductFilterSerializer(serializers.Serializer[Any]):
+    ordering = serializers.ChoiceField(
+        choices=[
+            "name",
+            "price",
+            "stock_quantity",
+            "-name",
+            "-price",
+            "-stock_quantity"
+        ],
+        required=False
+    )
     category = serializers.CharField(required=False)
     brand = serializers.CharField(required=False)
     min_price = serializers.DecimalField(
