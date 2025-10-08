@@ -22,7 +22,8 @@ class Cart(BaseModel):
             )
         )
 
-        return result["total"] or Decimal("0.00")
+        total = result["total"] or Decimal("0.00")
+        return total.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
 
     def __str__(self) -> str:
         return f"Cart of {self.user.username}"
