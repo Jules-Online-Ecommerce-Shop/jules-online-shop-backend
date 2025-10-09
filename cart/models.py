@@ -54,6 +54,21 @@ class Cart(BaseModel):
 
         return item
 
+    @transaction.atomic
+    def remove_item(self, product: Product) -> bool:
+        """
+        Remove an existing product from the cart.
+        Returns True if removed, False if not found.
+        """
+
+        qs = self.items.select_for_update().filter(product=product)
+        if not qs.exists():
+            return False
+
+        qs.delete()
+
+        return True
+
 
 class CartItem(BaseModel):
     cart = models.ForeignKey(
