@@ -1,7 +1,9 @@
 from decimal import Decimal, ROUND_HALF_UP
-from django.db import models
+from django.db import models, transaction
 from django.db.models import Sum, F, DecimalField
 from django.contrib.auth import get_user_model
+
+from catalog.models import Product
 
 from core.models import BaseModel
 
@@ -12,6 +14,9 @@ class Cart(BaseModel):
     user = models.OneToOneField(
         User, on_delete=models.CASCADE, related_name="cart"
     )
+
+    def __str__(self) -> str:
+        return f"Cart of {self.user.username}"
 
     @property
     def total(self) -> Decimal:
@@ -25,8 +30,29 @@ class Cart(BaseModel):
         total = result["total"] or Decimal("0.00")
         return total.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
 
-    def __str__(self) -> str:
-        return f"Cart of {self.user.username}"
+    @transaction.atomic
+    def add_item(self, product: Product, quantity: int = 1) -> "CartItem":
+        """
+        Add an item to the current cart instance or
+        update quantity if item exists
+        """
+
+        # Validate quantity
+        if quantity <= 0:
+            raise ValueError("quantity cannot be less/equal to zero.")
+
+        # Try to get existing cart item
+        item, created = self.items.select_for_update().get_or_create(
+            product=product,
+            defaults={"price_snapshot": product.price, "quantity": quantity}
+        )
+
+        # Update quantity if not created
+        if not created:
+            item.quantity += quantity
+            item.save(update_fields=["quantity", "updated_at"])
+
+        return item
 
 
 class CartItem(BaseModel):
