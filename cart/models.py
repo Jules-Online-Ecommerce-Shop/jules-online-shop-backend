@@ -2,6 +2,7 @@ from decimal import Decimal, ROUND_HALF_UP
 from django.db import models, transaction
 from django.db.models import Sum, F, DecimalField
 from django.contrib.auth import get_user_model
+from django.utils.translation import gettext_lazy as _
 
 from catalog.models import Product
 
@@ -90,6 +91,11 @@ class Cart(BaseModel):
         item.save(update_fields=["quantity", "updated_at"])
         return item
 
+    @transaction.atomic
+    def clear_items(self) -> None:
+        """Remove all items from the cart."""
+        self.items.all().delete()
+
 
 class CartItem(BaseModel):
     cart = models.ForeignKey(
@@ -102,6 +108,8 @@ class CartItem(BaseModel):
     price_snapshot = models.DecimalField(decimal_places=2, max_digits=10)
 
     class Meta:
+        verbose_name = _("Cart Item")
+        verbose_name_plural = _("Cart Items")
         constraints = [
             models.UniqueConstraint(
                 fields=["cart", "product"], name="unique_cart_product"
