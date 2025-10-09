@@ -69,6 +69,27 @@ class Cart(BaseModel):
 
         return True
 
+    @transaction.atomic
+    def update_item(
+        self, product: Product, quantity: int
+    ) -> "CartItem | None":
+        """
+        Set the exact quantity for an existing cart item.
+        Returns the updated CartItem, or None if not found.
+        """
+
+        if quantity <= 0:
+            raise ValueError("Quantity must be greater than zero.")
+
+        try:
+            item = self.items.select_for_update().get(product=product)
+        except CartItem.DoesNotExist:
+            return None
+
+        item.quantity = quantity
+        item.save(update_fields=["quantity", "updated_at"])
+        return item
+
 
 class CartItem(BaseModel):
     cart = models.ForeignKey(
