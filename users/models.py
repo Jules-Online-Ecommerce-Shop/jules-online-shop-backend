@@ -9,6 +9,10 @@ class User(AbstractUser, BaseModel):
     """
     Custom User model where email is the unique identifier for authentication.
     Username is still kept for display, but login is email-based.
+
+    - `email` is used for authentication and must be unique.
+    - `username` is still required for compatibility
+    with Django admin and superusers.
     """
 
     email = models.EmailField(unique=True)
@@ -26,6 +30,12 @@ class User(AbstractUser, BaseModel):
 
 
 class UserProfile(BaseModel):
+    """
+    Stores additional profile information for a user.
+
+    - `phone_number`: Optional.
+    - `profile_image`: Optional.
+    """
     user = models.OneToOneField(
         User, on_delete=models.CASCADE, related_name="user_profile"
     )
@@ -42,8 +52,11 @@ class Address(BaseModel):
     """
     Represents a user's saved address.
 
-    A user can have multiple addresses but only one can be marked
-    as default for shipping or billing at a time.
+    - A user can have multiple addresses.
+    - Only one address can be marked as default for
+    shipping or billing at a time.
+    - `digital_address` is for GhanaPost GPS or
+    similar digital addressing systems.
     """
 
     objects = models.Manager()
@@ -87,6 +100,7 @@ class Address(BaseModel):
     def set_as_default_shipping(self) -> None:
         """
         Makes this address the user's default shipping address.
+        This will unset any other default shipping.
         """
 
         if not self.pk:
@@ -101,6 +115,7 @@ class Address(BaseModel):
     def set_as_default_billing(self) -> None:
         """
         Makes this address the user's default billing address.
+        This will unset any other default billing.
         """
 
         if not self.pk:
