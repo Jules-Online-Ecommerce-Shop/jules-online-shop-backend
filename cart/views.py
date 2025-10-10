@@ -55,8 +55,8 @@ from drf_spectacular.utils import (
                                     "product": {
                                         "id": "prod-uuid-1",
                                         "name": "Product 1",
-                                        "price": "99.99",
-                                        # ...other fields...
+                                        "slug": "product-1",
+                                        "image": "(path)/product-1.jpg"
                                     },
                                     "quantity": 2,
                                     "price_snapshot": "99.99",
@@ -207,7 +207,8 @@ class CartView(APIView):
                             "product": {
                                 "id": "prod-uuid-1",
                                 "name": "Product 1",
-                                "price": "99.99",
+                                "slug": "product-1",
+                                "image": "(path)/product-1.jpg",
                             },
                             "quantity": 2,
                             "price_snapshot": "99.99",
@@ -258,7 +259,8 @@ class CartView(APIView):
                             "product": {
                                 "id": "prod-uuid-1",
                                 "name": "Product 1",
-                                "price": "99.99",
+                                "slug": "product-1",
+                                "image": "(path)/product-1.jpg",
                             },
                             "quantity": 3,
                             "price_snapshot": "99.99",
