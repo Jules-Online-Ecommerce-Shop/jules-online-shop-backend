@@ -5,7 +5,8 @@ from rest_framework import serializers
 from cart.models import Cart, CartItem
 from catalog.models import Product
 
-from orders.serializers import ProductSummarySerializer
+from orders.models import Order
+from orders.serializers import OrderSerializer, ProductSummarySerializer
 
 
 class CartItemSerializer(serializers.ModelSerializer[CartItem]):
@@ -45,7 +46,7 @@ class CartSerializer(serializers.ModelSerializer[Cart]):
         read_only_fields = ["total", "user"]
 
     def get_items_count(self, obj: Cart) -> int | Any:
-        return obj.items_count
+        return obj.items_count  # type: ignore
 
     def get_total(self, obj: Cart) -> Decimal:
         return obj.total
@@ -80,3 +81,51 @@ class CartItemUpdateSerializer(serializers.Serializer[Any]):
 
     def create(self, validated_data: dict[str, Any]) -> dict[str, Any]:
         return validated_data
+
+
+class CheckoutSerializer(serializers.Serializer[Any]):
+    use_default = serializers.BooleanField(default=False)
+    shipping_data = serializers.DictField(
+        child=serializers.CharField(),
+        required=False,
+        help_text="Custom shipping details if not using default address",
+    )
+
+    def validate(self, attrs: Any) -> Any:
+        """
+        Only validate request structure, not business logic.
+        """
+        use_default = attrs.get("use_default", False)
+        shipping_data = attrs.get("shipping_data")
+
+        if not use_default and not shipping_data:
+            raise serializers.ValidationError(
+                "Provide shipping_data or set use_default=True."
+            )
+
+        return attrs
+
+    def create(self, validated_data: dict[str, Any]) -> Order:
+        user = self.context["request"].user
+        cart = Cart.objects.filter(user=user).first()
+        if not cart:
+            raise serializers.ValidationError("User has no active cart.")
+
+        try:
+            order: Order = cart.checkout(
+                shipping_data=validated_data.get("shipping_data"),
+                use_default=validated_data.get("use_default", False),
+            )
+        except ValueError as e:
+            # Catch model-level validation errors cleanly
+            raise serializers.ValidationError(str(e))
+        except Exception:
+            # Catch unexpected errors without exposing internals
+            raise serializers.ValidationError(
+                "Checkout failed. Please try again later."
+            )
+
+        return order
+
+    def to_representation(self, instance: Order) -> dict[str, Any]:
+        return OrderSerializer(instance, context=self.context).data
