@@ -1,10 +1,10 @@
+from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.generics import (
-    ListCreateAPIView,
-    RetrieveUpdateDestroyAPIView
-)
+from rest_framework.generics import ListAPIView, RetrieveUpdateDestroyAPIView
+from rest_framework.response import Response
+from rest_framework.request import Request
 from rest_framework.exceptions import PermissionDenied
-from rest_framework.serializers import BaseSerializer
+from drf_spectacular.utils import extend_schema, OpenApiResponse
 from django.db.models import Q, QuerySet, Count
 from django.contrib.auth.models import AnonymousUser
 from orders.models import Order
@@ -16,8 +16,23 @@ from orders.serializers import (
 from typing import Any
 
 
-class OrderListCreateView(ListCreateAPIView[Order]):
+@extend_schema(
+    tags=["Orders"],
+    summary="List all user orders",
+    description=(
+        "Retrieves a list of the authenticated user's orders. "
+        "Supports filtering by status, date range, total amount, and ordering."
+    ),
+    responses={
+        200: OpenApiResponse(
+            response=OrderSummaryListSerializer,
+            description="List of user orders"
+        ),
+    },
+)
+class OrderListView(ListAPIView[Order]):
     permission_classes = [IsAuthenticated]
+    serializer_class = OrderSummaryListSerializer
 
     def get_queryset(self) -> QuerySet[Order]:
         user = self.request.user
@@ -28,7 +43,7 @@ class OrderListCreateView(ListCreateAPIView[Order]):
         )
         serializer.is_valid(raise_exception=True)
         params = serializer.validated_data
-        filters = Q()
+        filters = Q(user=user)
 
         if "status" in params:
             filters &= Q(status__iexact=params["status"])
@@ -42,28 +57,40 @@ class OrderListCreateView(ListCreateAPIView[Order]):
             filters &= Q(created_at__date__lte=params["end_date"])
 
         qs: QuerySet[Order] = (
-            Order.objects.filter(filters, user=user)
+            Order.objects.filter(filters)
             .prefetch_related("order_items__product__images")
             .annotate(items_count=Count("order_items"))
         )
 
         # Ordering
         ordering = params.get("ordering", "-created_at")
-        qs = qs.order_by(ordering)
 
-        return qs
+        return qs.order_by(ordering)
 
-    def get_serializer_class(
-        self,
-    ) -> type[OrderSerializer] | type[OrderSummaryListSerializer]:
-        if self.request.method == "GET":
-            return OrderSummaryListSerializer
-        return OrderSerializer
-
-    def perform_create(self, serializer: Any) -> None:
-        serializer.save(user=self.request.user)
+    def post(self, request: Request) -> Response:
+        """Prevent direct order creation."""
+        return Response(
+            {"detail": "Orders can only be created via checkout."},
+            status=status.HTTP_405_METHOD_NOT_ALLOWED,
+        )
 
 
+@extend_schema(
+    tags=["Orders"],
+    summary="Retrieve, update, or cancel an order",
+    description=(
+        "Retrieve detailed order information. "
+        "Pending orders can be updated (e.g. change address) or cancelled. "
+        "Completed or cancelled orders cannot be modified."
+    ),
+    responses={
+        200: OpenApiResponse(
+            response=OrderSerializer, description="Detailed order data"
+        ),
+        403: OpenApiResponse(description="Forbidden — Order not modifiable"),
+        404: OpenApiResponse(description="Order not found"),
+    },
+)
 class OrderDetailView(RetrieveUpdateDestroyAPIView[Order]):
     permission_classes = [IsAuthenticated]
     serializer_class = OrderSerializer
@@ -75,7 +102,7 @@ class OrderDetailView(RetrieveUpdateDestroyAPIView[Order]):
             "order_items__product__images"
         )
 
-    def perform_update(self, serializer: BaseSerializer[Order]) -> None:
+    def perform_update(self, serializer: Any) -> None:
         order = self.get_object()
         if order.status != "pending":
             raise PermissionDenied("Only pending orders can be updated.")
@@ -83,5 +110,6 @@ class OrderDetailView(RetrieveUpdateDestroyAPIView[Order]):
 
     def perform_destroy(self, instance: Order) -> None:
         if instance.status != "pending":
-            raise PermissionDenied("Only pending orders can be cancelled (deleted).")
-        instance.delete()
+            raise PermissionDenied("Only pending orders can be cancelled.")
+        instance.status = "cancelled"
+        instance.save(update_fields=["status"])
