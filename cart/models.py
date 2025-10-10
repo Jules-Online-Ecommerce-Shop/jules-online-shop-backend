@@ -1,4 +1,5 @@
 from decimal import Decimal, ROUND_HALF_UP
+from typing import Optional
 from django.db import models, transaction
 from django.db.models import Sum, F, DecimalField
 from django.contrib.auth import get_user_model
@@ -32,7 +33,9 @@ class Cart(BaseModel):
         return total.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
 
     @transaction.atomic
-    def add_item(self, product: Product, quantity: int = 1) -> "CartItem":
+    def add_item(
+        self, product: Product, quantity: int = 1
+    ) -> tuple["CartItem", bool]:
         """
         Add an item to the current cart instance or
         update quantity if item exists
@@ -53,7 +56,7 @@ class Cart(BaseModel):
             item.quantity += quantity
             item.save(update_fields=["quantity", "updated_at"])
 
-        return item
+        return item, created
 
     @transaction.atomic
     def remove_item(self, product: Product) -> bool:
@@ -72,23 +75,47 @@ class Cart(BaseModel):
 
     @transaction.atomic
     def update_item(
-        self, product: Product, quantity: int
-    ) -> "CartItem | None":
+        self,
+        *,
+        product: Optional[Product] = None,
+        item: Optional["CartItem"] = None,
+        quantity: int
+    ) -> Optional["CartItem"]:
         """
-        Set the exact quantity for an existing cart item.
-        Returns the updated CartItem, or None if not found.
-        """
+        Update the quantity of a cart item, given either the item instance
+        or the product. Returns the updated CartItem, or None if not found.
 
+        Ensures atomicity and row-level locking for safe concurrent updates.
+        """
+        # Validate quantity
         if quantity <= 0:
             raise ValueError("Quantity must be greater than zero.")
 
-        try:
-            item = self.items.select_for_update().get(product=product)
-        except CartItem.DoesNotExist:
-            return None
+        # If item is not provided, try fetching via product
+        if item is None:
+            if not product:
+                raise ValueError(
+                    "Either 'item' or 'product' must be provided."
+                )
+            try:
+                item = (
+                    self.items
+                    .select_for_update()
+                    .get(product=product)
+                )
+            except CartItem.DoesNotExist:
+                return None
+        else:
+            # Safety: ensure this item belongs to this cart
+            if item.cart_id != self.id:
+                raise ValueError(
+                    "The provided item does not belong to this cart."
+                )
 
+        # Perform update
         item.quantity = quantity
         item.save(update_fields=["quantity", "updated_at"])
+
         return item
 
     @transaction.atomic
