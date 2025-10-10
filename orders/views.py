@@ -4,7 +4,12 @@ from rest_framework.generics import ListAPIView, RetrieveUpdateDestroyAPIView
 from rest_framework.response import Response
 from rest_framework.request import Request
 from rest_framework.exceptions import PermissionDenied
-from drf_spectacular.utils import extend_schema, OpenApiResponse
+from drf_spectacular.utils import (
+    extend_schema,
+    OpenApiResponse,
+    OpenApiParameter,
+)
+from drf_spectacular.types import OpenApiTypes
 from django.db.models import Q, QuerySet, Count
 from django.contrib.auth.models import AnonymousUser
 from orders.models import Order
@@ -20,9 +25,60 @@ from typing import Any
     tags=["Orders"],
     summary="List all user orders",
     description=(
-        "Retrieves a list of the authenticated user's orders. "
-        "Supports filtering by status, date range, total amount, and ordering."
+        "Retrieves a list of the authenticated user's orders.\n\n"
+        "Supports filtering by:\n"
+        "- **status** (pending, paid, shipped, completed, cancelled)\n"
+        "- **min_total** and **max_total** (price range)\n"
+        "- **start_date** and **end_date** (creation date range)\n"
+        "- **ordering** (e.g., `-created_at`, `total_price`)\n\n"
+        "All filters are optional."
     ),
+    parameters=[
+        OpenApiParameter(
+            name="status",
+            type=OpenApiTypes.STR,
+            description=(
+                "Filter by order status (e.g., pending, completed, cancelled)"
+            ),
+            required=False,
+        ),
+        OpenApiParameter(
+            name="min_total",
+            type=OpenApiTypes.NUMBER,
+            description="Minimum total price of orders",
+            required=False,
+        ),
+        OpenApiParameter(
+            name="max_total",
+            type=OpenApiTypes.NUMBER,
+            description="Maximum total price of orders",
+            required=False,
+        ),
+        OpenApiParameter(
+            name="start_date",
+            type=OpenApiTypes.DATE,
+            description=(
+                "Start date for filtering orders by creation date (YYYY-MM-DD)"
+            ),
+            required=False,
+        ),
+        OpenApiParameter(
+            name="end_date",
+            type=OpenApiTypes.DATE,
+            description=(
+                "End date for filtering orders by creation date (YYYY-MM-DD)"
+            ),
+            required=False,
+        ),
+        OpenApiParameter(
+            name="ordering",
+            type=OpenApiTypes.STR,
+            description=(
+                "Order results by a field (e.g., `-created_at`, `total_price`)"
+            ),
+            required=False,
+        ),
+    ],
     responses={
         200: OpenApiResponse(
             response=OrderSummaryListSerializer,
