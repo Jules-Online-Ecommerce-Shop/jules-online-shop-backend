@@ -20,17 +20,39 @@ from django.urls import path, include
 from jules_shop.settings import DEBUG
 from django.conf import settings
 from django.conf.urls.static import static
+from drf_spectacular.views import (
+    SpectacularAPIView,
+    SpectacularRedocView,
+    SpectacularSwaggerView,
+)
 
 base_url: str = "api/v1"
 
 urlpatterns = [
     path("admin/", admin.site.urls),
     path(f"{base_url}/catalog/", include("catalog.urls")),
-    path(f"{base_url}/orders/", include("orders.urls"))
+    path(f"{base_url}/orders/", include("orders.urls")),
+    path(f"{base_url}/cart/", include("cart.urls")),
+
+    # API schema
+    path(f"{base_url}/schema/", SpectacularAPIView.as_view(), name="schema"),
+
+    # Swagger UI
+    path(
+        f"{base_url}/docs/swagger/",
+        SpectacularSwaggerView.as_view(url_name="schema"),
+        name="swagger-ui",
+    ),
+
+    # Redoc UI
+    path(
+        f"{base_url}/docs/redoc/",
+        SpectacularRedocView.as_view(url_name="schema"),
+        name="redoc"
+    ),
 ]
 
 if DEBUG:
     urlpatterns += static(
-        settings.MEDIA_URL,
-        document_root=settings.MEDIA_ROOT
+        settings.MEDIA_URL, document_root=settings.MEDIA_ROOT
     )
