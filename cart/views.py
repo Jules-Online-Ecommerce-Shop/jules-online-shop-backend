@@ -3,6 +3,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.request import Request
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.exceptions import ValidationError
 from rest_framework import status
 from django.shortcuts import get_object_or_404
 from django.db.models import Count
@@ -12,6 +13,7 @@ from cart.serializers import (
     CartSerializer,
     CartItemInputSerializer,
     CartItemUpdateSerializer,
+    CheckoutSerializer,
 )
 from cart.models import Cart, CartItem
 from catalog.models import Product
@@ -25,6 +27,8 @@ from drf_spectacular.utils import (
     OpenApiResponse,
     OpenApiExample,
 )
+
+from orders.serializers import OrderSerializer
 
 
 @extend_schema_view(
@@ -372,3 +376,84 @@ class CartDetailView(APIView):
         item = self.get_object(item_id, request.user)
         item.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+@extend_schema(
+    tags=["Checkout"],
+    request=CheckoutSerializer,
+    responses={
+        201: OpenApiResponse(
+            response=OrderSerializer,
+            description="Order successfully created"
+        ),
+        400: OpenApiResponse(
+            description="Invalid input or missing shipping details"
+        ),
+        500: OpenApiResponse(
+            description="Unexpected error during checkout"
+        ),
+    },
+    examples=[
+        OpenApiExample(
+            "Checkout with custom shipping details",
+            value={
+                "use_default": False,
+                "shipping_data": {
+                    "shipping_name": "Sylvester Adade",
+                    "shipping_address_line1": "32 High Street",
+                    "shipping_digital_address": "BN-123-4567",
+                    "shipping_region": "Bono",
+                    "shipping_country": "Ghana"
+                }
+            },
+            request_only=True,
+            response_only=False,
+        ),
+        OpenApiExample(
+            "Checkout using default address",
+            value={"use_default": True},
+            request_only=True,
+            response_only=False,
+        ),
+    ],
+    summary="Checkout current cart and create an order",
+    description=(
+        "Converts the authenticated user's current cart into an order. "
+        "The user can either use their default shipping address or provide "
+        "a custom shipping_data payload. "
+        "All cart items will be moved to the new order and the cart "
+        "will be cleared upon success."
+    ),
+)
+class CheckoutAPIView(APIView):
+    """
+    Handle checkout process for the authenticated user's cart.
+    Converts the user's cart into an order, using either
+    their default address or custom shipping data.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request: Request) -> Response:
+        serializer = CheckoutSerializer(
+            data=request.data,
+            context={"request": request}
+        )
+        serializer.is_valid(raise_exception=True)
+
+        try:
+            order = serializer.save()
+        except ValidationError as e:
+            # Model-level or serializer-level validation issues
+            return Response(
+                {"detail": e.detail}, status=status.HTTP_400_BAD_REQUEST
+            )
+        except Exception:
+            # Catch unexpected internal errors (never expose raw exception)
+            return Response(
+                {"detail": "An unexpected error occurred during checkout."},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+        return Response(
+            serializer.to_representation(order), status=status.HTTP_201_CREATED
+        )
