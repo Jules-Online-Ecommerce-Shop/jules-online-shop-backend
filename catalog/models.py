@@ -127,6 +127,10 @@ class Product(BaseModel):
 
     @transaction.atomic
     def reduce_stock(self, quantity: int) -> None:
+        """
+        Reduces a product stock by quantity.
+        Raises ValueError if insufficient stock, or invalid quantity
+        """
         if quantity <= 0:
             raise ValueError("Quantity must be positive.")
         if self.stock_quantity < quantity:
