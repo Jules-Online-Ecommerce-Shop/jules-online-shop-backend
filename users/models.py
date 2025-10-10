@@ -25,7 +25,7 @@ class User(AbstractUser, BaseModel):
     def __str__(self) -> str:
         return f"{self.username} ({self.email})"
 
-    def get_default_shipping_address(self) -> Any:
+    def get_default_shipping_address(self) -> "Address | None":
         return self.addresses.filter(is_default_shipping=True).first()
 
 
