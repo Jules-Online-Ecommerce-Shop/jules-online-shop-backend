@@ -69,6 +69,17 @@ class OrderItem(BaseModel):
     quantity = models.PositiveIntegerField()
     price_snapshot = models.DecimalField(max_digits=10, decimal_places=2)
 
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["order", "product"], name="unique_order_item"
+            )
+        ]
+        indexes = [
+            models.Index(fields=["order"]),
+            models.Index(fields=["product"]),
+        ]
+
     def save(self, *args: Any, **kwargs: Any) -> None:
         if not self.price_snapshot == self.product.price:
             self.price_snapshot = self.product.price
