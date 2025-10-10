@@ -11,19 +11,107 @@ from cart.serializers import (
     CartItemSerializer,
     CartSerializer,
     CartItemInputSerializer,
-    CartItemUpdateSerializer
+    CartItemUpdateSerializer,
 )
 from cart.models import Cart, CartItem
 from catalog.models import Product
 
-
 from typing import Any
 
+from drf_spectacular.utils import (
+    extend_schema,
+    extend_schema_view,
+    OpenApiParameter,
+    OpenApiResponse,
+    OpenApiExample,
+)
 
+
+@extend_schema_view(
+    get=extend_schema(
+        summary="Retrieve the authenticated user's cart",
+        description=(
+            "Fetches the current authenticated "
+            "user's shopping cart, including all items, "
+            "item count, and total price. If the cart does not exist, "
+            "it will be created automatically."
+        ),
+        responses={
+            200: OpenApiResponse(
+                response=CartSerializer,
+                description="The user's cart and its items."
+            ),
+        },
+        tags=["Cart"],
+        examples=[
+            OpenApiExample(
+                "Cart Example",
+                value={
+                    "id": "c1b2d3e4-f5a6-7890-1234-56789abcdef0",
+                    "user": "user@example.com",
+                    "items_count": 2,
+                    "total": "199.98",
+                    "items": [
+                        {
+                            "id": "item-uuid-1",
+                            "cart": "c1b2d3e4-f5a6-7890-1234-56789abcdef0",
+                            "product": {
+                                "id": "prod-uuid-1",
+                                "name": "Product 1",
+                                "price": "99.99",
+                                # ...other fields...
+                            },
+                            "quantity": 2,
+                            "price_snapshot": "99.99",
+                            "sub_total": "199.98",
+                        }
+                    ],
+                },
+                response_only=True,
+            )
+        ],
+    ),
+    post=extend_schema(
+        summary="Add or increase a product in the cart",
+        description=(
+            "Adds a product to the authenticated user's "
+            "cart or increases its quantity if it already exists. "
+            "Returns the updated cart. The product must be active."
+        ),
+        request=CartItemInputSerializer,
+        responses={
+            201: OpenApiResponse(
+                response=CartSerializer,
+                description="Product added to cart (new item)."
+            ),
+            200: OpenApiResponse(
+                response=CartSerializer,
+                description="Product quantity increased (existing item).",
+            ),
+            400: OpenApiResponse(
+                description="Invalid input or product not found."
+            ),
+        },
+        tags=["Cart"],
+    ),
+    delete=extend_schema(
+        summary="Clear the authenticated user's cart",
+        description="Removes all items from the authenticated user's cart.",
+        responses={
+            204: OpenApiResponse(description="Cart cleared successfully."),
+        },
+        tags=["Cart"],
+    ),
+)
 class CartView(APIView):
     """
-    Retrieve, add to, or clear the authenticated user's cart.
+    Cart API
+
+    Manage the authenticated user's shopping cart.
+    Supports retrieving the cart, adding products, and clearing all items.
+    All endpoints require authentication.
     """
+
     permission_classes = [IsAuthenticated]
 
     def get_cart(self, user: Any) -> Cart:
@@ -80,11 +168,91 @@ class CartView(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
+@extend_schema_view(
+    get=extend_schema(
+        summary="Retrieve a specific cart item",
+        description=(
+            "Fetches a specific item from the "
+            "authenticated user's cart by item ID."
+        ),
+        parameters=[
+            OpenApiParameter(
+                name="item_id",
+                description="UUID of the cart item",
+                required=True,
+                type={"type": "string", "format": "uuid"},
+                location=OpenApiParameter.PATH,
+            ),
+        ],
+        responses={
+            200: OpenApiResponse(
+                response=CartItemSerializer, description="Cart item details."
+            ),
+            404: OpenApiResponse(description="Cart or item not found."),
+        },
+        tags=["Cart"],
+    ),
+    patch=extend_schema(
+        summary="Update a cart item's quantity",
+        description=(
+            "Partially updates the quantity of a "
+            "specific item in the authenticated user's cart. "
+            "Quantity must be greater than zero."
+        ),
+        parameters=[
+            OpenApiParameter(
+                name="item_id",
+                description="UUID of the cart item",
+                required=True,
+                type={"type": "string", "format": "uuid"},
+                location=OpenApiParameter.PATH,
+            ),
+        ],
+        request=CartItemUpdateSerializer,
+        responses={
+            202: OpenApiResponse(
+                response=CartItemSerializer,
+                description="Cart item updated successfully.",
+            ),
+            400: OpenApiResponse(
+                description="Invalid quantity or item does not belong to cart."
+            ),
+            404: OpenApiResponse(description="Cart or item not found."),
+        },
+        tags=["Cart"],
+    ),
+    delete=extend_schema(
+        summary="Remove a cart item",
+        description=(
+            "Deletes a specific item from the authenticated user's cart."
+        ),
+        parameters=[
+            OpenApiParameter(
+                name="item_id",
+                description="UUID of the cart item",
+                required=True,
+                type={"type": "string", "format": "uuid"},
+                location=OpenApiParameter.PATH,
+            ),
+        ],
+        responses={
+            204: OpenApiResponse(
+                description="Cart item removed successfully."
+            ),
+            404: OpenApiResponse(description="Cart or item not found."),
+        },
+        tags=["Cart"],
+    ),
+)
 class CartDetailView(APIView):
     """
-    Retrieve, update, or delete a specific
-    item in the authenticated user's cart.
+    Cart Item API
+
+    Retrieve, update, or remove a specific item in
+    the authenticated user's cart.
+    All endpoints require authentication.
     """
+
     permission_classes = [IsAuthenticated]
 
     def get_object(self, item_id: UUID, user: Any) -> CartItem:
