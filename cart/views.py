@@ -39,37 +39,37 @@ from drf_spectacular.utils import (
         responses={
             200: OpenApiResponse(
                 response=CartSerializer,
-                description="The user's cart and its items."
+                description="The user's cart and its items.",
+                examples=[
+                    OpenApiExample(
+                        "Cart Example",
+                        value={
+                            "id": "c1b2d3e4-f5a6-7890-1234-56789abcdef0",
+                            "user": "user@example.com",
+                            "items_count": 2,
+                            "total": "199.98",
+                            "items": [
+                                {
+                                    "id": "item-uuid-1",
+                                    "cart": "c1b2d3e4-f5a6-7890-1234-56789abc",
+                                    "product": {
+                                        "id": "prod-uuid-1",
+                                        "name": "Product 1",
+                                        "price": "99.99",
+                                        # ...other fields...
+                                    },
+                                    "quantity": 2,
+                                    "price_snapshot": "99.99",
+                                    "sub_total": "199.98",
+                                }
+                            ],
+                        },
+                        response_only=True,
+                    )
+                ],
             ),
         },
         tags=["Cart"],
-        examples=[
-            OpenApiExample(
-                "Cart Example",
-                value={
-                    "id": "c1b2d3e4-f5a6-7890-1234-56789abcdef0",
-                    "user": "user@example.com",
-                    "items_count": 2,
-                    "total": "199.98",
-                    "items": [
-                        {
-                            "id": "item-uuid-1",
-                            "cart": "c1b2d3e4-f5a6-7890-1234-56789abcdef0",
-                            "product": {
-                                "id": "prod-uuid-1",
-                                "name": "Product 1",
-                                "price": "99.99",
-                                # ...other fields...
-                            },
-                            "quantity": 2,
-                            "price_snapshot": "99.99",
-                            "sub_total": "199.98",
-                        }
-                    ],
-                },
-                response_only=True,
-            )
-        ],
     ),
     post=extend_schema(
         summary="Add or increase a product in the cart",
@@ -79,6 +79,16 @@ from drf_spectacular.utils import (
             "Returns the updated cart. The product must be active."
         ),
         request=CartItemInputSerializer,
+        examples=[
+            OpenApiExample(
+                "Add Product Example",
+                value={
+                    "product_id": "prod-uuid-1",
+                    "quantity": 2
+                },
+                request_only=True,
+            ),
+        ],
         responses={
             201: OpenApiResponse(
                 response=CartSerializer,
