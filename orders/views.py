@@ -133,18 +133,39 @@ class OrderListView(ListAPIView[Order]):
 
 @extend_schema(
     tags=["Orders"],
-    summary="Retrieve, update, or cancel an order",
+    summary="Retrieve, update, or cancel a specific order",
     description=(
-        "Retrieve detailed order information. "
-        "Pending orders can be updated (e.g. change address) or cancelled. "
-        "Completed or cancelled orders cannot be modified."
+        "This endpoint allows a user to:\n\n"
+        "- **GET** → Retrieve full details of a specific order.\n"
+        "- **PATCH / PUT** → Update the order *only if status is 'pending'.*\n"
+        "- **DELETE** → Cancel the order (delete it) "
+        "*only if status is 'pending'.*\n\n"
+        "Once an order has been paid, shipped, or "
+        "completed, it can no longer be modified."
     ),
+    parameters=[
+        OpenApiParameter(
+            name="id",
+            type=OpenApiTypes.INT,
+            location=OpenApiParameter.PATH,
+            description="The ID of the order to retrieve, update, or cancel",
+            required=True,
+        ),
+    ],
     responses={
         200: OpenApiResponse(
-            response=OrderSerializer, description="Detailed order data"
+            response=OrderSerializer,
+            description="Full details of the requested order",
         ),
-        403: OpenApiResponse(description="Forbidden — Order not modifiable"),
-        404: OpenApiResponse(description="Order not found"),
+        403: OpenApiResponse(
+            description=(
+                "Permission denied — order cannot "
+                "be updated or deleted once processed."
+            ),
+        ),
+        404: OpenApiResponse(
+            description="Order not found or not owned by the current user.",
+        ),
     },
 )
 class OrderDetailView(RetrieveUpdateDestroyAPIView[Order]):
