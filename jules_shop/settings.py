@@ -65,14 +65,22 @@ MIDDLEWARE = [
 ]
 
 REST_FRAMEWORK = {
-    'DEFAULT_PAGINATION_CLASS': 'core.pagination.GlobalPagination',
-    'PAGE_SIZE': 10,
+    "DEFAULT_PAGINATION_CLASS": "core.pagination.GlobalPagination",
+    "PAGE_SIZE": 10,
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
 }
 
 UNFOLD = {
     "SITE_TITLE": "Jules Online Shop Admin",
     "SITE_HEADER": "Jules Shop Admin",
     # "DASHBOARD_CALLBACK": "orders.dashboard.dashboard_callback",
+}
+
+SPECTACULAR_SETTINGS = {
+    "TITLE": "Jules Shop API",
+    "DESCRIPTION": "API documentation for Jules shop application",
+    "VERSION": "1.0.0",
+    "SERVE_INCLUDE_SCHEMA": True,
 }
 
 
