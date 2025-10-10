@@ -44,6 +44,8 @@ INSTALLED_APPS = [
     # Packages
     "rest_framework",
     "corsheaders",
+    "drf_spectacular",
+    "drf_spectacular_sidecar",
 
     # Custom apps
     "cart.apps.CartConfig",
@@ -80,7 +82,7 @@ SPECTACULAR_SETTINGS = {
     "TITLE": "Jules Shop API",
     "DESCRIPTION": "API documentation for Jules shop application",
     "VERSION": "1.0.0",
-    "SERVE_INCLUDE_SCHEMA": True,
+    "SERVE_INCLUDE_SCHEMA": False,
 }
 
 
