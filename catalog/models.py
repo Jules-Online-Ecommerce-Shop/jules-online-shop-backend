@@ -1,4 +1,4 @@
-from django.db import models
+from django.db import models, transaction
 from core.models import BaseModel
 from django.utils.text import slugify
 
@@ -8,7 +8,7 @@ from typing import Any
 class Category(BaseModel):
     """
     Organizes products into a hierarchical structure.
-    Each category can optionally have a parent, 
+    Each category can optionally have a parent,
     allowing nesting (e.g., Clothing > Men > Shirts).
     The slug is auto-generated from the name for clean, SEO-friendly URLs.
     """
@@ -44,7 +44,9 @@ class Category(BaseModel):
         # Check if slug or parent changed
         old_slug = old_parent_id = None
         if self.pk:
-            old_self = Category.objects.filter(pk=self.pk).only("slug", "parent").first()
+            old_self = Category.objects.filter(pk=self.pk).only(
+                "slug", "parent"
+            ).first()
             if old_self:
                 old_slug = old_self.slug
                 old_parent_id = old_self.parent_id
@@ -122,6 +124,15 @@ class Product(BaseModel):
 
     def __str__(self) -> str:
         return self.name
+
+    @transaction.atomic
+    def reduce_stock(self, quantity: int) -> None:
+        if quantity <= 0:
+            raise ValueError("Quantity must be positive.")
+        if self.stock_quantity < quantity:
+            raise ValueError("Insufficient stock.")
+        self.stock_quantity -= quantity
+        self.save(update_fields=["stock"])
 
 
 class ProductImage(BaseModel):
