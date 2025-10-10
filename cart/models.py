@@ -1,5 +1,5 @@
 from decimal import Decimal, ROUND_HALF_UP
-from typing import Optional
+from typing import Any, Optional
 from django.db import models, transaction
 from django.db.models import Sum, F, DecimalField
 from django.contrib.auth import get_user_model
@@ -8,6 +8,8 @@ from django.utils.translation import gettext_lazy as _
 from catalog.models import Product
 
 from core.models import BaseModel
+from orders.models import Order, OrderItem
+from users.models import Address
 
 User = get_user_model()
 
@@ -122,6 +124,82 @@ class Cart(BaseModel):
     def clear_items(self) -> None:
         """Remove all items from the cart."""
         self.items.all().delete()
+
+    @transaction.atomic
+    def checkout(
+        self,
+        shipping_data: dict[str, Any] | None = None,
+        use_default: bool = False,
+    ) -> Order:
+        """
+        Converts the cart into an order.
+        User can either use their default shipping
+        address or provide a custom one.
+        """
+        if not self.items.exists():
+            raise ValueError("Cannot checkout an empty cart.")
+
+        # Determine shipping info
+        if use_default:
+            address: Address | None = self.user.get_default_shipping_address()
+            if not address:
+                raise ValueError("No default shipping address set.")
+            shipping_data = {
+                "shipping_name": address.full_name,
+                "shipping_address_line1": address.address_line1,
+                "shipping_address_line2": address.address_line2,
+                "shipping_digital_address": address.digital_address,
+                "shipping_region": address.region,
+                "shipping_country": address.country,
+            }
+        elif not shipping_data:
+            raise ValueError(
+                "Shipping address must be provided if not using default."
+            )
+
+        # Validate required fields
+        required_fields = [
+            "shipping_name",
+            "shipping_address_line1",
+            "shipping_digital_address",
+            "shipping_region",
+            "shipping_country",
+        ]
+        for f in required_fields:
+            if not shipping_data.get(f):
+                raise ValueError(f"Missing required shipping field: {f}")
+
+        # Create order with shipping snapshot
+        order: Order = Order.objects.create(
+            user=self.user,
+            **{k: v for k, v in shipping_data.items() if k.startswith("shipping_")},
+        )
+
+        # Create order items (snapshotting prices)
+        order_items: list[OrderItem] = [
+            OrderItem(
+                order=order,
+                product=item.product,
+                quantity=item.quantity,
+                price_snapshot=item.price_snapshot,
+            )
+            for item in self.items.select_related("product")
+        ]
+        OrderItem.objects.bulk_create(order_items)
+
+        # Compute total from created items
+        order.total_price = (
+            order.order_items.aggregate(
+                total=models.Sum(F("price_snapshot") * F("quantity")),
+                output_field=DecimalField(max_digits=12, decimal_places=2)
+            )["total"] or Decimal("0.00")
+        )
+        order.save()
+
+        # Clear cart
+        self.clear_items()
+
+        return order
 
 
 class CartItem(BaseModel):
