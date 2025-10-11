@@ -29,9 +29,8 @@ class User(AbstractUser, BaseModel):
         """
         Override save to ensure a UserProfile exists for every user.
         """
-        is_new = self.pk is None
         super().save(*args, **kwargs)
-        if is_new and not hasattr(self, "user_profile"):
+        if not hasattr(self, "user_profile"):
             UserProfile.objects.create(user=self)
 
     def get_default_shipping_address(self) -> "Address | None":
