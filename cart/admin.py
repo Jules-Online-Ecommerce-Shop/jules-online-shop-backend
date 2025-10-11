@@ -39,7 +39,16 @@ class CartItemInline(TabularInline):
         """
         Use annotated subtotal if available; fallback to model property.
         """
-        subtotal: Decimal = getattr(obj, "subtotal", obj.sub_total)
+        subtotal = getattr(obj, "subtotal", None)
+
+        # Fallback to model property if annotation missing
+        if subtotal is None:
+            subtotal = getattr(obj, "sub_total", Decimal("0.00"))
+
+        # Ensure it is a Decimal
+        if not isinstance(subtotal, Decimal):
+            subtotal = Decimal(subtotal or 0)
+
         return f"GHS{subtotal:.2f}"
 
 
@@ -87,7 +96,16 @@ class CartAdmin(ModelAdmin):
 
     @admin.display(ordering="total_price_sum", description="Total Price")
     def total_price_display(self, obj: Cart) -> str:
-        total: Decimal = getattr(obj, "total_price_sum", obj.total)
+        total = getattr(obj, "total_price_sum", None)
+
+        # Fallback to obj.total if annotation missing
+        if total is None:
+            total = getattr(obj, "total", Decimal("0.00"))
+
+        # Ensure it's a Decimal
+        if not isinstance(total, Decimal):
+            total = Decimal(total or 0)
+
         return f"GHS{total:.2f}"
 
     def get_inline_instances(
