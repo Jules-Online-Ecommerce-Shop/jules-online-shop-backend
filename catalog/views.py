@@ -38,14 +38,6 @@ class CategoryListView(ListAPIView[Category]):
     description=(
         "Retrieve a single category by its `full_slug`"
     ),
-    parameters=[
-        OpenApiParameter(
-            "full_slug",
-            description="Full slug of the category to retrieve",
-            required=True,
-            type=str
-        )
-    ],
     responses={200: CategorySerializer}
 )
 class CategoryDetailView(RetrieveAPIView[Category]):
@@ -168,14 +160,6 @@ class ProductListView(ListAPIView[Product]):
         "Retrieve a single product by its unique slug with all "
         "related fields."
     ),
-    parameters=[
-        OpenApiParameter(
-            "slug",
-            description="Slug of the product to retrieve",
-            required=True,
-            type=str
-        )
-    ],
     responses={200: ProductSerializer}
 )
 class ProductDetailView(RetrieveAPIView[Product]):
