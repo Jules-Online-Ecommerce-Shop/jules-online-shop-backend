@@ -183,7 +183,7 @@ class Cart(BaseModel):
                 quantity=item.quantity,
                 price_snapshot=item.price_snapshot,
             )
-            for item in self.items.select_related("product")
+            for item in self.items.select_for_update().select_related("product")
         ]
         OrderItem.objects.bulk_create(order_items)
 
@@ -211,7 +211,7 @@ class CartItem(BaseModel):
         "catalog.Product", on_delete=models.PROTECT, related_name="cart_items"
     )
     quantity = models.PositiveIntegerField(default=1)
-    price_snapshot = models.DecimalField(decimal_places=2, max_digits=10)
+    price_snapshot = models.DecimalField(decimal_places=2, max_digits=12)
 
     class Meta:
         verbose_name = _("Cart Item")
