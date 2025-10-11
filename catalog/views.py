@@ -40,9 +40,12 @@ class ProductListView(ListAPIView[Product]):
     Supports filtering via query params validated by a serializer.
     """
     serializer_class = ProductSerializer
-    queryset = Product.objects.filter(
-        is_active=True
-    ).prefetch_related("images", "category")
+    queryset = (
+        Product.objects
+        .filter(is_active=True)
+        .select_related("category")
+        .prefetch_related("images")
+    )
 
     def get_queryset(self) -> QuerySet[Product]:
         qs = super().get_queryset()
