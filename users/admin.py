@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.utils.html import format_html
 from django.contrib.auth import get_user_model
 from unfold.admin import ModelAdmin, TabularInline
 from users.models import UserProfile, Address
@@ -12,10 +13,19 @@ class UserProfileInline(TabularInline):
     model: type[UserProfile] = UserProfile
     can_delete: bool = False
     verbose_name_plural = "Profile"
-    fields = ("phone_number", "profile_image")
-    readonly_fields = ()
+    fields = ("phone_number", "profile_image_display")
+    readonly_fields = ("profile_image_display",)
     extra: int = 0
-    show_change_link: bool = True
+
+    @admin.display(description="Profile Image")
+    def profile_image_display(self, obj: UserProfile) -> str:
+        """Display profile image at a normal size in admin."""
+        if obj.profile_image:
+            return format_html(
+                '<img src="{}" style="max-height:150px; max-width:150px; '
+                'border-radius:50%;" />', obj.profile_image.url
+            )
+        return "(No image)"
 
 
 class AddressInline(TabularInline):
@@ -94,13 +104,24 @@ class UserAdmin(ModelAdmin):
     )
 
 
+
 @admin.register(UserProfile)
 class UserProfileAdmin(ModelAdmin):
-    """Standalone UserProfile admin."""
+    """Standalone UserProfile admin with larger profile image display."""
 
-    list_display = ("user", "phone_number", "profile_image")
+    list_display = ("user", "phone_number", "profile_image_display")
     search_fields = ("user__username", "user__email", "phone_number")
+    readonly_fields = ("profile_image_display",)
 
+    @admin.display(description="Profile Image")
+    def profile_image_display(self, obj: UserProfile) -> str:
+        """Display the profile image at a reasonable size in admin."""
+        if obj.profile_image:
+            return format_html(
+                '<img src="{}" style="max-height:150px; max-width:150px; '
+                'border-radius:50%;" />', obj.profile_image.url
+            )
+        return "(No image)"
 
 @admin.register(Address)
 class AddressAdmin(ModelAdmin):
