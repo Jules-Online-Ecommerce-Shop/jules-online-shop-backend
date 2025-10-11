@@ -28,10 +28,23 @@ class Category(BaseModel):
 
     class Meta:
         verbose_name_plural = "Categories"
-        unique_together = ["slug", "parent"]
         ordering = ["name"]
         indexes = [
-            models.Index(fields=["full_slug"])
+            models.Index(fields=["slug"]),
+            models.Index(fields=["full_slug"]),
+            models.Index(fields=["parent"]),
+        ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["slug", "parent"],
+                name="unique_slug_per_parent"
+            ),
+            # prevent self-reference
+            models.CheckConstraint(
+                condition=~models.Q(parent=models.F("id")),
+                name="category_not_self_parent",
+                violation_error_message="A category cannot be its own parent.",
+            ),
         ]
 
     def save(self, *args: Any, **kwargs: Any) -> None:
