@@ -50,16 +50,15 @@ class Category(BaseModel):
     def save(self, *args: Any, **kwargs: Any) -> None:
         force_update = kwargs.pop("force_full_slug_update", False)
 
-        # Generate slug if empty
         if not self.slug:
             self.slug = slugify(self.name)
 
-        # Check if slug or parent changed
         old_slug = old_parent_id = None
         if self.pk:
-            old_self = Category.objects.filter(pk=self.pk).only(
-                "slug", "parent"
-            ).first()
+            old_self = (
+                Category.objects.filter(pk=self.pk)
+                .only("slug", "parent").first()
+            )
             if old_self:
                 old_slug = old_self.slug
                 old_parent_id = old_self.parent_id
@@ -72,13 +71,30 @@ class Category(BaseModel):
         )
 
         if needs_update:
-            # Compute full_slug from current tree
             self.full_slug = self.get_full_slug()
-            super().save(*args, **kwargs)
 
-            # Recursively update children
-            for child in self.children.all():
-                child.save(force_full_slug_update=True)
+            from django.db import IntegrityError
+            from random import randint
+
+            # Retry on IntegrityError to handle slug collisions
+            for _ in range(3):
+                try:
+                    super().save(*args, **kwargs)
+                    break
+                except IntegrityError:
+                    # Append a random suffix to make slug unique
+                    base_slug = slugify(self.name)
+                    self.slug = f"{base_slug}-{randint(1000, 9999)}"
+            else:
+                # All attempts failed
+                raise IntegrityError(
+                    "Could not save category after 3 attempts."
+                )
+
+            children = list(self.children.all())
+            for child in children:
+                child.full_slug = child.get_full_slug()
+            Category.objects.bulk_update(children, ["full_slug"])
         else:
             super().save(*args, **kwargs)
 
