@@ -156,6 +156,13 @@ class ProductImage(BaseModel):
 
     class Meta:
         ordering = ["-is_featured", "id"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["product"],
+                condition=models.Q(is_featured=True),
+                name="unique_featured_image_per_product"
+            )
+        ]
 
     def __str__(self) -> str:
         return f"{self.product.name} - {self.alt_text or 'Image'}"
