@@ -234,5 +234,7 @@ class CartItem(BaseModel):
 
     @property
     def sub_total(self) -> Decimal:
-        result = Decimal(self.price_snapshot) * self.quantity
+        price: Decimal = self.price_snapshot or Decimal("0.00")
+        qty: int = self.quantity or 0
+        result = price * qty
         return result.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
