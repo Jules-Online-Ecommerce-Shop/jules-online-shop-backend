@@ -136,7 +136,10 @@ class Cart(BaseModel):
         User can either use their default shipping
         address or provide a custom one.
         """
-        if not self.items.exists():
+        cart_items = list(
+            self.items.select_for_update().select_related("product")
+        )
+        if not cart_items:
             raise ValueError("Cannot checkout an empty cart.")
 
         # Determine shipping info
@@ -183,7 +186,7 @@ class Cart(BaseModel):
                 quantity=item.quantity,
                 price_snapshot=item.price_snapshot,
             )
-            for item in self.items.select_for_update().select_related("product")
+            for item in cart_items
         ]
         OrderItem.objects.bulk_create(order_items)
 
