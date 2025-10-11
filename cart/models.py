@@ -193,8 +193,10 @@ class Cart(BaseModel):
         # Compute total from created items
         order.total_price = (
             order.order_items.aggregate(
-                total=models.Sum(F("price_snapshot") * F("quantity")),
-                output_field=DecimalField(max_digits=12, decimal_places=2)
+                total=models.Sum(
+                    F("price_snapshot") * F("quantity"),
+                    output_field=DecimalField(max_digits=12, decimal_places=2)
+                ),
             )["total"] or Decimal("0.00")
         ).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
 
