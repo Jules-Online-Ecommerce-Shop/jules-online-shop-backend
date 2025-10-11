@@ -136,7 +136,7 @@ class Product(BaseModel):
         if self.stock_quantity < quantity:
             raise ValueError("Insufficient stock.")
         self.stock_quantity -= quantity
-        self.save(update_fields=["stock"])
+        self.save(update_fields=["stock_quantity"])
 
 
 class ProductImage(BaseModel):
