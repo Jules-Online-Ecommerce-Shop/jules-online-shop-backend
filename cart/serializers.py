@@ -119,8 +119,9 @@ class CheckoutSerializer(serializers.Serializer[Any]):
         except ValueError as e:
             # Catch model-level validation errors cleanly
             raise serializers.ValidationError(str(e))
-        except Exception:
+        except Exception as e:
             # Catch unexpected errors without exposing internals
+            print(str(e))
             raise serializers.ValidationError(
                 "Checkout failed. Please try again later."
             )

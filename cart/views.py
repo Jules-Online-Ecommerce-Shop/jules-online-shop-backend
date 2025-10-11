@@ -447,8 +447,9 @@ class CheckoutAPIView(APIView):
             return Response(
                 {"detail": e.detail}, status=status.HTTP_400_BAD_REQUEST
             )
-        except Exception:
+        except Exception as e:
             # Catch unexpected internal errors (never expose raw exception)
+            print(str(e))
             return Response(
                 {"detail": "An unexpected error occurred during checkout."},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
