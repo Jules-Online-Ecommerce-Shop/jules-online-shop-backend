@@ -1,4 +1,8 @@
 from rest_framework.generics import ListAPIView, RetrieveAPIView
+from drf_spectacular.utils import (
+    extend_schema,
+    OpenApiParameter,
+)
 from catalog.serializers import (
     CategorySerializer,
     ProductFilterSerializer,
@@ -8,6 +12,14 @@ from django.db.models import Q, QuerySet
 from catalog.models import Category, Product
 
 
+@extend_schema(
+    summary="List Root Categories",
+    description=(
+        "Returns all root categories (parent__isnull=True) "
+        "with nested children up to three levels deep."
+    ),
+    responses={200: CategorySerializer(many=True)}
+)
 class CategoryListView(ListAPIView[Category]):
     """
     Returns all root categories with nested children
@@ -21,6 +33,13 @@ class CategoryListView(ListAPIView[Category]):
     )
 
 
+@extend_schema(
+    summary="Retrieve Category",
+    description=(
+        "Retrieve a single category by its `full_slug`"
+    ),
+    responses={200: CategorySerializer}
+)
 class CategoryDetailView(RetrieveAPIView[Category]):
     """
     Retrieve a single category by full_slug with nested children
@@ -34,15 +53,77 @@ class CategoryDetailView(RetrieveAPIView[Category]):
     )
 
 
+@extend_schema(
+    summary="List Products",
+    description=(
+        "Returns active products. Supports filtering by category, brand, "
+        "price range, stock quantity, and in-stock status. Supports ordering "
+        "by name, price, or stock_quantity (ascending or descending)."
+    ),
+    parameters=[
+        OpenApiParameter(
+            "category",
+            description="Filter by category slug",
+            required=False,
+        ),
+        OpenApiParameter(
+            "brand",
+            description="Filter by brand name",
+            required=False
+        ),
+        OpenApiParameter(
+            "min_price",
+            description="Minimum price filter",
+            required=False
+        ),
+        OpenApiParameter(
+            "max_price",
+            description="Maximum price filter",
+            required=False
+        ),
+        OpenApiParameter(
+            "stock_quantity",
+            description="Minimum stock quantity",
+            required=False
+        ),
+        OpenApiParameter(
+            "in_stock",
+            description="Filter only products in stock",
+            required=False,
+            type=bool,
+        ),
+        OpenApiParameter(
+            "ordering",
+            description=(
+                "Ordering field: name, price, "
+                "stock_quantity (prefix with - for descending)"
+            ),
+            required=False,
+            type=str,
+            enum=[
+                "name",
+                "-name",
+                "price",
+                "-price",
+                "stock_quantity",
+                "-stock_quantity",
+            ],
+        ),
+    ],
+    responses={200: ProductSerializer(many=True)},
+)
 class ProductListView(ListAPIView[Product]):
     """
     Returns all active products.
     Supports filtering via query params validated by a serializer.
     """
     serializer_class = ProductSerializer
-    queryset = Product.objects.filter(
-        is_active=True
-    ).prefetch_related("images", "category")
+    queryset = (
+        Product.objects
+        .filter(is_active=True)
+        .select_related("category")
+        .prefetch_related("images")
+    )
 
     def get_queryset(self) -> QuerySet[Product]:
         qs = super().get_queryset()
@@ -73,6 +154,14 @@ class ProductListView(ListAPIView[Product]):
         return qs.filter(filters)
 
 
+@extend_schema(
+    summary="Retrieve Product",
+    description=(
+        "Retrieve a single product by its unique slug with all "
+        "related fields."
+    ),
+    responses={200: ProductSerializer}
+)
 class ProductDetailView(RetrieveAPIView[Product]):
     """
     Retrieve a single product by its slug.

@@ -1,4 +1,4 @@
-from django.db import models
+from django.db import models, transaction
 from core.models import BaseModel
 from django.utils.text import slugify
 
@@ -8,7 +8,7 @@ from typing import Any
 class Category(BaseModel):
     """
     Organizes products into a hierarchical structure.
-    Each category can optionally have a parent, 
+    Each category can optionally have a parent,
     allowing nesting (e.g., Clothing > Men > Shirts).
     The slug is auto-generated from the name for clean, SEO-friendly URLs.
     """
@@ -28,23 +28,37 @@ class Category(BaseModel):
 
     class Meta:
         verbose_name_plural = "Categories"
-        unique_together = ["slug", "parent"]
         ordering = ["name"]
         indexes = [
-            models.Index(fields=["full_slug"])
+            models.Index(fields=["slug"]),
+            models.Index(fields=["full_slug"]),
+            models.Index(fields=["parent"]),
+        ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["slug", "parent"],
+                name="unique_slug_per_parent"
+            ),
+            # prevent self-reference
+            models.CheckConstraint(
+                condition=~models.Q(parent=models.F("id")),
+                name="category_not_self_parent",
+                violation_error_message="A category cannot be its own parent.",
+            ),
         ]
 
     def save(self, *args: Any, **kwargs: Any) -> None:
         force_update = kwargs.pop("force_full_slug_update", False)
 
-        # Generate slug if empty
         if not self.slug:
             self.slug = slugify(self.name)
 
-        # Check if slug or parent changed
         old_slug = old_parent_id = None
         if self.pk:
-            old_self = Category.objects.filter(pk=self.pk).only("slug", "parent").first()
+            old_self = (
+                Category.objects.filter(pk=self.pk)
+                .only("slug", "parent").first()
+            )
             if old_self:
                 old_slug = old_self.slug
                 old_parent_id = old_self.parent_id
@@ -57,13 +71,30 @@ class Category(BaseModel):
         )
 
         if needs_update:
-            # Compute full_slug from current tree
             self.full_slug = self.get_full_slug()
-            super().save(*args, **kwargs)
 
-            # Recursively update children
-            for child in self.children.all():
-                child.save(force_full_slug_update=True)
+            from django.db import IntegrityError
+            from random import randint
+
+            # Retry on IntegrityError to handle slug collisions
+            for _ in range(3):
+                try:
+                    super().save(*args, **kwargs)
+                    break
+                except IntegrityError:
+                    # Append a random suffix to make slug unique
+                    base_slug = slugify(self.name)
+                    self.slug = f"{base_slug}-{randint(1000, 9999)}"
+            else:
+                # All attempts failed
+                raise IntegrityError(
+                    "Could not save category after 3 attempts."
+                )
+
+            children = list(self.children.all())
+            for child in children:
+                child.full_slug = child.get_full_slug()
+            Category.objects.bulk_update(children, ["full_slug"])
         else:
             super().save(*args, **kwargs)
 
@@ -123,6 +154,19 @@ class Product(BaseModel):
     def __str__(self) -> str:
         return self.name
 
+    @transaction.atomic
+    def reduce_stock(self, quantity: int) -> None:
+        """
+        Reduces a product stock by quantity.
+        Raises ValueError if insufficient stock, or invalid quantity
+        """
+        if quantity <= 0:
+            raise ValueError("Quantity must be positive.")
+        if self.stock_quantity < quantity:
+            raise ValueError("Insufficient stock.")
+        self.stock_quantity -= quantity
+        self.save(update_fields=["stock_quantity"])
+
 
 class ProductImage(BaseModel):
     """
@@ -141,6 +185,13 @@ class ProductImage(BaseModel):
 
     class Meta:
         ordering = ["-is_featured", "id"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["product"],
+                condition=models.Q(is_featured=True),
+                name="unique_featured_image_per_product"
+            )
+        ]
 
     def __str__(self) -> str:
         return f"{self.product.name} - {self.alt_text or 'Image'}"

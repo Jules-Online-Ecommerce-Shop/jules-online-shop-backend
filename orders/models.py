@@ -32,10 +32,15 @@ class Order(BaseModel):
     # Shipping address snapshot
     shipping_name = models.CharField(max_length=255)
     shipping_address_line1 = models.CharField(max_length=255)
-    shipping_address_line2 = models.CharField(max_length=255, blank=True, null=True)
+    shipping_address_line2 = models.CharField(
+        max_length=255, blank=True, null=True
+    )
     shipping_digital_address = models.CharField(max_length=20)
     shipping_region = models.CharField(max_length=100)
     shipping_country = models.CharField(max_length=100, default="GHANA")
+
+    class Meta:
+        indexes = [models.Index(fields=["user", "status"])]
 
     def save(self, *args: Any, **kwargs: Any) -> None:
         """
@@ -45,7 +50,9 @@ class Order(BaseModel):
         if self.pk and self.total_price:  # only recalc if order already exists
             total = (
                 self.order_items.aggregate(
-                    total=models.Sum(models.F("price_snapshot") * models.F("quantity"))
+                    total=models.Sum(
+                        models.F("price_snapshot") * models.F("quantity")
+                    )
                 )["total"] or 0
             )
             self.total_price = total
@@ -68,6 +75,17 @@ class OrderItem(BaseModel):
     )
     quantity = models.PositiveIntegerField()
     price_snapshot = models.DecimalField(max_digits=10, decimal_places=2)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["order", "product"], name="unique_order_item"
+            )
+        ]
+        indexes = [
+            models.Index(fields=["order"]),
+            models.Index(fields=["product"]),
+        ]
 
     def save(self, *args: Any, **kwargs: Any) -> None:
         if not self.price_snapshot == self.product.price:
