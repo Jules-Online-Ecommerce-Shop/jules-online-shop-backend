@@ -189,4 +189,4 @@ class OrderDetailView(RetrieveUpdateDestroyAPIView[Order]):
         if instance.status != "pending":
             raise PermissionDenied("Only pending orders can be cancelled.")
         instance.status = "cancelled"
-        instance.save(update_fields=["status"])
+        instance.save(update_fields=["status", "updated_at"])
