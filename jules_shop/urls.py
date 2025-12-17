@@ -34,25 +34,25 @@ urlpatterns = [
     path(f"{base_url}/orders/", include("orders.urls")),
     path(f"{base_url}/cart/", include("cart.urls")),
 
-    # API schema
+    # Spectacular docs urls
     path(f"{base_url}/schema/", SpectacularAPIView.as_view(), name="schema"),
-
-    # Swagger UI
     path(
         f"{base_url}/docs/swagger/",
         SpectacularSwaggerView.as_view(url_name="schema"),
         name="swagger-ui",
     ),
-
-    # Redoc UI
     path(
         f"{base_url}/docs/redoc/",
         SpectacularRedocView.as_view(url_name="schema"),
-        name="redoc"
+        name="redoc",
     ),
 ]
 
 if DEBUG:
+    import debug_toolbar
+
     urlpatterns += static(
         settings.MEDIA_URL, document_root=settings.MEDIA_ROOT
-    )
+    ) + [
+        path("__debug__/", include(debug_toolbar.urls))
+    ]

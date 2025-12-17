@@ -40,13 +40,11 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-
     # Packages
     "rest_framework",
     "corsheaders",
     "drf_spectacular",
     "drf_spectacular_sidecar",
-
     # Custom apps
     "cart.apps.CartConfig",
     "catalog.apps.CatalogConfig",
@@ -66,6 +64,14 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
+
+# Add the django debug toolbar in dev
+if DEBUG:
+    INSTALLED_APPS += ["debug_toolbar"]
+    MIDDLEWARE.insert(0, "debug_toolbar.middleware.DebugToolbarMiddleware")
+
+    INTERNAL_IPS = ["127.0.0.1", "localhost"]
+
 
 REST_FRAMEWORK = {
     "DEFAULT_PAGINATION_CLASS": "core.pagination.GlobalPagination",
@@ -115,24 +121,24 @@ WSGI_APPLICATION = "jules_shop.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
-if config('USE_SQLITE', default=True, cast=bool):
+if config("USE_SQLITE", default=True, cast=bool):
     DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
         }
     }
 else:
     DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': config('PGDATABASE'),
-            'USER': config('PGUSER'),
-            'PASSWORD': config('PGPASSWORD'),
-            'HOST': config('PGHOST'),
-            'PORT': config('PGPORT', default=5432, cast=int),
-            'OPTIONS': {
-                'sslmode': 'require',
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": config("PGDATABASE"),
+            "USER": config("PGUSER"),
+            "PASSWORD": config("PGPASSWORD"),
+            "HOST": config("PGHOST"),
+            "PORT": config("PGPORT", default=5432, cast=int),
+            "OPTIONS": {
+                "sslmode": "require",
             },
         }
     }
@@ -174,7 +180,6 @@ USE_TZ = True
 
 STATIC_URL = "/static/"
 STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
-STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
 
 STORAGES = {
     "staticfiles": {
@@ -204,3 +209,29 @@ SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 CSRF_COOKIE_SECURE = True
 SESSION_COOKIE_SECURE = True
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+        },
+    },
+    "root": {
+        "handlers": ["console"],
+        "level": "INFO",
+    },
+    "loggers": {
+        "django": {
+            "handlers": ["console"],
+            "level": "INFO",
+            "propagate": False,
+        },
+        "django.request": {
+            "handlers": ["console"],
+            "level": "ERROR",
+            "propagate": False,
+        },
+    },
+}
