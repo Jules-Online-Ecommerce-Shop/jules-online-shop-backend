@@ -40,11 +40,17 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+
+    # Cloudinary
+    "cloudinary",
+    "cloudinary_storage",
+
     # Packages
     "rest_framework",
     "corsheaders",
     "drf_spectacular",
     "drf_spectacular_sidecar",
+
     # Custom apps
     "cart.apps.CartConfig",
     "catalog.apps.CatalogConfig",
@@ -183,14 +189,17 @@ STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 
 STORAGES = {
     "default": {
-        "BACKEND": "django.core.files.storage.FileSystemStorage",
-        "OPTIONS": {
-            "location": BASE_DIR / "media",
-        },
+        "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
     },
     "staticfiles": {
         "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
     },
+}
+
+CLOUDINARY_STORAGE = {
+    "CLOUD_NAME": config("CLOUDINARY_CLOUD_NAME"),
+    "API_KEY": config("CLOUDINARY_API_KEY"),
+    "API_SECRET": config("CLOUDINARY_API_SECRET"),
 }
 
 
@@ -202,11 +211,12 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # User model setup
 AUTH_USER_MODEL = "users.User"
 
-# Absolute path on disk where uploaded files will be stored
-MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+# # Absolute path on disk where uploaded files will be stored
+# Storages and media uploads are being handled with cloudinary
+# MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
-# URL that serves the media files
-MEDIA_URL = "/media/"
+# # URL that serves the media files
+# MEDIA_URL = "/media/"
 
 CSRF_TRUSTED_ORIGINS = [
     "https://*.railway.app",

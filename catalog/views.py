@@ -166,6 +166,11 @@ class ProductDetailView(RetrieveAPIView[Product]):
     """
     Retrieve a single product by its slug.
     """
-    queryset = Product.objects.prefetch_related("images", "category")
+    queryset = (
+        Product.objects
+        .filter(is_active=True)
+        .select_related("category")
+        .prefetch_related("images")
+    )
     serializer_class = ProductSerializer
     lookup_field = "slug"

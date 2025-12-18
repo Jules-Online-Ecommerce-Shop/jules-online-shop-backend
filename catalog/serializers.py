@@ -8,21 +8,12 @@ class CategorySerializer(serializers.ModelSerializer[Category]):
 
     class Meta:
         model = Category
-        fields = [
-            "name",
-            "slug",
-            "description",
-            "parent",
-            "full_slug",
-            "children"
-        ]
+        fields = ["name", "slug", "description", "parent", "full_slug", "children"]
         read_only_fields = ["children"]
 
     def get_children(self, obj: Category) -> Any:
         return CategorySerializer(
-            obj.children.all(),
-            many=True,
-            context=self.context
+            obj.children.all(), many=True, context=self.context
         ).data
 
 
@@ -63,20 +54,16 @@ class ProductFilterSerializer(serializers.Serializer[Any]):
             "stock_quantity",
             "-name",
             "-price",
-            "-stock_quantity"
+            "-stock_quantity",
         ],
-        required=False
+        required=False,
     )
     category = serializers.CharField(required=False)
     brand = serializers.CharField(required=False)
     min_price = serializers.DecimalField(
-        required=False,
-        max_digits=10,
-        decimal_places=2
+        required=False, max_digits=10, decimal_places=2
     )
     max_price = serializers.DecimalField(
-        required=False,
-        max_digits=10,
-        decimal_places=2
+        required=False, max_digits=10, decimal_places=2
     )
     in_stock = serializers.BooleanField(required=False)
