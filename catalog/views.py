@@ -111,7 +111,7 @@ class CategoryDetailView(RetrieveAPIView[Category]):
             ],
         ),
     ],
-    responses={200: ProductSerializer(many=True)},
+    responses={200: ProductSummarySerializer(many=True)},
 )
 class ProductListView(ListAPIView[Product]):
     """

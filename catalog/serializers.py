@@ -2,6 +2,7 @@ from rest_framework import serializers
 from catalog.models import Category, Product, ProductImage
 from typing import Any
 
+from drf_spectacular.utils import extend_schema_field
 from utils.helpers import generate_optimized_url
 
 
@@ -28,6 +29,18 @@ class ProductImageSerializer(serializers.ModelSerializer[ProductImage]):
         model = ProductImage
         fields = ["id", "image", "is_featured"]
 
+    @extend_schema_field({
+        "type": "object",
+        "properties": {
+            "url": {"type": "string", "format": "uri"},
+            "alt_text": {"type": "string"},
+        },
+        "nullable": True,
+        "example": {
+            "url": "https://res.cloudinary.com/demo/image/upload/f_auto,q_auto/w_600/v123/products/shoe.jpg",
+            "alt_text": "White sneakers",
+        }
+    })
     def get_image(self, obj: ProductImage) -> dict[str, Any]:
 
         # Automatically generate optimized images from Cloudinary
@@ -56,6 +69,18 @@ class ProductSummarySerializer(serializers.ModelSerializer[Product]):
             "brand",
         ]
 
+    @extend_schema_field({
+        "type": "object",
+        "properties": {
+            "url": {"type": "string", "format": "uri"},
+            "alt_text": {"type": "string"},
+        },
+        "nullable": True,
+        "example": {
+            "url": "https://res.cloudinary.com/demo/image/upload/f_auto,q_auto/w_600/v123/products/shoe.jpg",
+            "alt_text": "White sneakers",
+        }
+    })
     def get_image(self, obj: Product) -> dict[str, Any] | None:
         image: ProductImage | None = (
             obj.images.filter(is_featured=True).first()
