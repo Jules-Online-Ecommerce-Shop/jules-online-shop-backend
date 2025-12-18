@@ -6,7 +6,8 @@ from drf_spectacular.utils import (
 from catalog.serializers import (
     CategorySerializer,
     ProductFilterSerializer,
-    ProductSerializer
+    ProductSerializer,
+    ProductSummarySerializer
 )
 from django.db.models import Q, QuerySet
 from catalog.models import Category, Product
@@ -117,7 +118,7 @@ class ProductListView(ListAPIView[Product]):
     Returns all active products.
     Supports filtering via query params validated by a serializer.
     """
-    serializer_class = ProductSerializer
+    serializer_class = ProductSummarySerializer
     queryset = (
         Product.objects
         .filter(is_active=True)

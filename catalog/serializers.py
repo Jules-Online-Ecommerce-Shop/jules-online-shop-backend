@@ -33,9 +33,8 @@ class ProductImageSerializer(serializers.ModelSerializer[ProductImage]):
         # Automatically generate optimized images from Cloudinary
         return {
             "url": generate_optimized_url(
-                obj.image,
-                width=600,
-                height=600,
+                obj.image.name,
+                width=1200,
                 crop="fill",
             ),
             "alt_text": obj.alt_text,
@@ -69,7 +68,7 @@ class ProductSummarySerializer(serializers.ModelSerializer[Product]):
         # Automatically generate optimized images from Cloudinary
         return {
             "url": generate_optimized_url(
-                image.image,
+                image.image.name,
                 width=600,
                 height=600,
                 crop="fill",

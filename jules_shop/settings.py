@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
 from pathlib import Path
+import cloudinary
 from decouple import config
 import os
 
@@ -252,3 +253,11 @@ LOGGING = {
         },
     },
 }
+
+# Initialize cloudinary SDK to be able to use cloudinary utilities
+cloudinary.config(
+    cloud_name=config("CLOUDINARY_CLOUD_NAME"),
+    api_key=config("CLOUDINARY_API_KEY"),
+    api_secret=config("CLOUDINARY_API_SECRET"),
+    secure=True,
+)
