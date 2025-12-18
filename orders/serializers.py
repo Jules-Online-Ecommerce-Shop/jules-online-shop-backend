@@ -1,25 +1,8 @@
 from rest_framework import serializers
+from catalog.serializers import ProductSummarySerializer
 from orders.models import Order, OrderItem
-from catalog.models import Product
-from catalog.serializers import ProductImageSerializer
 
 from typing import Any
-
-
-class ProductSummarySerializer(serializers.ModelSerializer[Product]):
-    image = serializers.SerializerMethodField()
-
-    class Meta:
-        model = Product
-        fields = ["id", "name", "slug", "image"]
-
-    def get_image(self, obj: Product) -> Any | None:
-        first_image = obj.images.filter(is_featured=True).first()
-        if not first_image:
-            first_image = obj.images.first() or None
-
-        serializer = ProductImageSerializer(first_image)
-        return serializer.data
 
 
 class OrderItemSerializer(serializers.ModelSerializer[OrderItem]):
@@ -81,7 +64,7 @@ class OrderSummaryListSerializer(serializers.ModelSerializer[Order]):
         read_only_fields = fields
 
     def get_items_count(self, obj: Order) -> int | Any:
-        return obj.items_count
+        return obj.items_count  # type: ignore
 
 
 class OrderFilterSerializer(serializers.Serializer[Any]):

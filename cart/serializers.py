@@ -5,8 +5,9 @@ from rest_framework import serializers
 from cart.models import Cart, CartItem
 from catalog.models import Product
 
+from catalog.serializers import ProductSummarySerializer
 from orders.models import Order
-from orders.serializers import OrderSerializer, ProductSummarySerializer
+from orders.serializers import OrderSerializer
 
 
 class CartItemSerializer(serializers.ModelSerializer[CartItem]):
