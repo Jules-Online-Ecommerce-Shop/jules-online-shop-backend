@@ -1,141 +1,170 @@
-# 🛍️ Jules Online Shop Backend
+# Jules Shop – Backend API
 
-Backend for a client e-commerce project using Django and Django REST Framework (DRF).
+Production-ready **Django REST Framework (DRF)** backend for an e-commerce platform.
 
----
+This repository is intended for **frontend developers**, **backend contributors**, and reviewers who want to understand how the system works and how to run it locally.
 
-## 📚 Table of Contents
-
-- [Project Overview](#project-overview)
-- [Features](#features)
-- [Tech Stack](#tech-stack)
-- [Getting Started](#getting-started)
-  - [Prerequisites](#prerequisites)
-  - [Installation](#installation)
-  - [Running the Project](#running-the-project)
-- [Project Structure](#project-structure)
-- [Environment Variables](#environment-variables)
-- [Contributing](#contributing)
-- [License](#license)
-
----
-
-## Project Overview
-
-This project is the backend for **Jules Online Shop**, an e-commerce platform that supports:
-
-- User authentication and management
-- Product catalog with categories and images
-- Shopping cart management
-- Order management and order history
-- Payment processing with transaction tracking
-
-Built with Django and Django REST Framework, designed to integrate seamlessly with a React frontend.
-
----
-
-## Features
-
-- **Users**: Custom user model with email, phone number, and addresses
-- **Catalog**: Products, categories, and multiple product images
-- **Cart**: Session-based shopping cart with multiple items
-- **Orders**: Checkout process and complete order history
-- **Payments**: Tracks transactions, status, and timestamps
-- **JWT Authentication**: Secure token-based authentication
+> 📌 For deeper design and system decisions, see **`architecture.md`**.
 
 ---
 
 ## Tech Stack
 
-- Python 3.11
-- Django 4.2
-- Django REST Framework 3.15
-- Pillow (image handling)
-- `django-cors-headers` (frontend integration)
-- DRF Simple JWT (authentication)
-- Dev Tools: `black`, `isort`, `flake8`
+* **Django 5.x** + **Django REST Framework**
+* **PostgreSQL (Neon)**
+* **Cloudinary** (media storage & image optimization)
+* **Railway** (backend hosting)
+* **Whitenoise** (static files)
+* **DRF Spectacular** (OpenAPI / Swagger docs)
 
 ---
 
-## Getting Started
+## Key Features
 
-### Prerequisites
+* Product catalog with categories & images
+* Optimized product listing vs detail endpoints
+* Cloudinary-backed image uploads with dynamic transformations
+* Django Admin (Unfold UI)
+* Production-like deployment early in development
 
-- Python 3.11+ installed
-- Poetry installed ([Basic usage guide](https://python-poetry.org/docs/basic-usage/))
+---
 
-### 📦 Installation
+## 📂 Project Structure (High-Level)
 
-Clone the repository:
-
-```bash
-git clone git@github.com:Jules-Online-Ecommerce-Shop/jules-online-shop-backend.git
-cd jules-online-shop-backend
 ```
-
-Install dependencies:
-
-```bash
-poetry install --no-root
-```
-
-Activate virtual environment (optional):
-
-```bash
-poetry env activate
+.
+├── catalog/
+├── cart/
+├── orders/
+├── users/
+├── payments/
+├── utils/
+├── jules_shop/
+├── architecture.md
+├── requirements.txt
+├── requirements.dev.txt
+└── README.md
 ```
 
 ---
 
-### 🏃 Running the Project
+## 🧑‍💻 Frontend Developers
 
-Apply migrations:
+### Base URL
+
+```
+https://jules-online-shop-backend-development.up.railway.app
+```
+
+### API Docs
+
+* Swagger UI: `/api/v1/docs/swagger`
+* OpenAPI schema: `/api/v1/schema/`
+
+Docs are **serializer-driven** and reflect the real response structure.
+
+### Product Listings
+
+Listing endpoints return **summaries**, not full objects, for performance:
+
+```json
+{
+  "id": 1,
+  "name": "Product Name",
+  "slug": "product-name",
+  "price": "99.99",
+  "image": {
+    "url": "https://res.cloudinary.com/...",
+    "alt_text": "Product image"
+  }
+}
+```
+
+Images are already optimized (size, format, compression).
+
+---
+
+## 🧑‍🔧 Backend Developers
+
+### Environment Variables
+
+Create a `.env` file or copy `.env.example` file:
+
+```env
+DJANGO_SECRET_KEY=...
+DEBUG=True
+USE_SQLITE=True
+
+# PostgreSQL (prod)
+PGDATABASE=...
+PGUSER=...
+PGPASSWORD=...
+PGHOST=...
+PGPORT=5432
+
+# Cloudinary
+CLOUDINARY_CLOUD_NAME=...
+CLOUDINARY_API_KEY=...
+CLOUDINARY_API_SECRET=...
+```
+
+---
+
+### Installation
+
+```bash
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+```
+
+For development tools (debug toolbar, typing, testing):
+
+```bash
+pip install -r requirements-dev.txt
+```
+
+---
+
+### Database & Fixtures
 
 ```bash
 python manage.py migrate
+python manage.py loaddata */fixtures/*.json
 ```
 
-Create a superuser:
+---
 
-```bash
-python manage.py createsuperuser
-```
-
-Run the development server:
+### Run Locally
 
 ```bash
 python manage.py runserver
 ```
 
-API available at:  
-**http://127.0.0.1:8000/**
+---
+
+## 🖼 Media & Images
+
+* Media files are stored on **Cloudinary**
+* Database stores references only
+* URLs are transformed dynamically per use-case
+
+This avoids large payloads and keeps frontend performance fast.
 
 ---
 
-## Project Structure
+## 🌍 Deployment
 
-```text
-jules-online-shop-backend/
-├─ backend/           # Django project settings
-├─ users/             # User management
-├─ catalog/           # Product catalog
-├─ cart/              # Shopping cart
-├─ orders/            # Order management
-├─ payments/          # Payment transactions
-├─ pyproject.toml     # Poetry dependency file
-├─ poetry.lock        # Locked dependencies
-├─ manage.py          # Django management commands
-└─ README.md
-```
+* Backend hosted on **Railway**
+* PostgreSQL on **Neon**
+* Environment variables managed via Railway dashboard
 
 ---
 
-## Environment Variables
+## 📄 Notes
 
-Create a `.env` file in the root directory:
+* Debug tooling is **dev-only**
+* Listing endpoints are intentionally minimal
+* Admin performance tuning is ongoing
 
-```env
-cp .env.example .env
-```
-
-Use `python-decouple` to load these variables in Django.
+For architectural reasoning and tradeoffs, see **architecture.md**.
