@@ -6,7 +6,8 @@ from drf_spectacular.utils import (
 from catalog.serializers import (
     CategorySerializer,
     ProductFilterSerializer,
-    ProductSerializer
+    ProductSerializer,
+    ProductSummarySerializer
 )
 from django.db.models import Q, QuerySet
 from catalog.models import Category, Product
@@ -110,14 +111,14 @@ class CategoryDetailView(RetrieveAPIView[Category]):
             ],
         ),
     ],
-    responses={200: ProductSerializer(many=True)},
+    responses={200: ProductSummarySerializer(many=True)},
 )
 class ProductListView(ListAPIView[Product]):
     """
     Returns all active products.
     Supports filtering via query params validated by a serializer.
     """
-    serializer_class = ProductSerializer
+    serializer_class = ProductSummarySerializer
     queryset = (
         Product.objects
         .filter(is_active=True)
@@ -166,6 +167,11 @@ class ProductDetailView(RetrieveAPIView[Product]):
     """
     Retrieve a single product by its slug.
     """
-    queryset = Product.objects.prefetch_related("images", "category")
+    queryset = (
+        Product.objects
+        .filter(is_active=True)
+        .select_related("category")
+        .prefetch_related("images")
+    )
     serializer_class = ProductSerializer
     lookup_field = "slug"

@@ -44,38 +44,6 @@ from orders.serializers import OrderSerializer
             200: OpenApiResponse(
                 response=CartSerializer,
                 description="The user's cart and its items.",
-                examples=[
-                    OpenApiExample(
-                        "Cart Example",
-                        value={
-                            "id": "c1b2d3e4-f5a6-7890-1234-56789abcdef0",
-                            "user": "user@example.com",
-                            "items_count": 2,
-                            "total": "199.98",
-                            "items": [
-                                {
-                                    "id": "item-uuid-1",
-                                    "cart": "c1b2d3e4-f5a6-7890-1234-56789abc",
-                                    "product": {
-                                        "id": "prod-uuid-1",
-                                        "name": "Product 1",
-                                        "slug": "product-1",
-                                        "image": {
-                                            "id": "image-uuid",
-                                            "image": "(path-to-image).jpg",
-                                            "alt_text": "",
-                                            "is_featured": False,
-                                        },
-                                    },
-                                    "quantity": 2,
-                                    "price_snapshot": "99.99",
-                                    "sub_total": "199.98",
-                                }
-                            ],
-                        },
-                        response_only=True,
-                    )
-                ],
             ),
         },
         tags=["Cart"],
@@ -207,30 +175,6 @@ class CartView(APIView):
             200: OpenApiResponse(
                 response=CartItemSerializer,
                 description="Cart item details.",
-                examples=[
-                    OpenApiExample(
-                        "Cart Item Example",
-                        value={
-                            "id": "item-uuid-1",
-                            "cart": "c1b2d3e4-f5a6-7890-1234-56789abcdef0",
-                            "product": {
-                                "id": "prod-uuid-1",
-                                "name": "Product 1",
-                                "slug": "product-1",
-                                "image": {
-                                    "id": "image-uuid",
-                                    "image": "(path-to-image).jpg",
-                                    "alt_text": "",
-                                    "is_featured": False,
-                                },
-                            },
-                            "quantity": 2,
-                            "price_snapshot": "99.99",
-                            "sub_total": "199.98",
-                        },
-                        response_only=True,
-                    )
-                ],
             ),
             404: OpenApiResponse(description="Cart or item not found."),
         },
@@ -264,30 +208,6 @@ class CartView(APIView):
             202: OpenApiResponse(
                 response=CartItemSerializer,
                 description="Cart item updated successfully.",
-                examples=[
-                    OpenApiExample(
-                        "Updated Item Example",
-                        value={
-                            "id": "item-uuid-1",
-                            "cart": "c1b2d3e4-f5a6-7890-1234-56789abcdef0",
-                            "product": {
-                                "id": "prod-uuid-1",
-                                "name": "Product 1",
-                                "slug": "product-1",
-                                "image": {
-                                    "id": "image-uuid",
-                                    "image": "(path-to-image).jpg",
-                                    "alt_text": "",
-                                    "is_featured": True,
-                                },
-                            },
-                            "quantity": 3,
-                            "price_snapshot": "99.99",
-                            "sub_total": "299.97",
-                        },
-                        response_only=True,
-                    )
-                ],
             ),
             400: OpenApiResponse(
                 description="Invalid quantity or item does not belong to cart."

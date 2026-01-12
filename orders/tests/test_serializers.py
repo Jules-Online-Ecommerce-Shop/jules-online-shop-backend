@@ -2,9 +2,9 @@ from decimal import Decimal
 from django.test import TestCase
 from django.contrib.auth import get_user_model
 from catalog.models import Product, ProductImage
+from catalog.serializers import ProductSummarySerializer
 from orders.models import Order, OrderItem
 from orders.serializers import (
-    ProductSummarySerializer,
     OrderItemSerializer,
     OrderSerializer,
     OrderSummaryListSerializer,
