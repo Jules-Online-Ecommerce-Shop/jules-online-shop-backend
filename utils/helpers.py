@@ -3,7 +3,7 @@ from cloudinary.utils import cloudinary_url
 
 def generate_optimized_url(
     public_id: str,
-    fmt: str = "auto",
+    fmt: str | None = None,
     quality: str = "auto",
     fetch_format: str = "auto",
     width: int | None = None,
@@ -20,7 +20,7 @@ def generate_optimized_url(
     public_id : str
         The Cloudinary public ID of the asset (e.g., "sample.jpg").
     fmt : str, optional
-        Format transformation (default: "auto").
+        Format transformation (default: None).
         Example: "jpg", "png", "webp", "auto".
     quality : str, optional
         Quality transformation (default: "auto").
@@ -54,9 +54,9 @@ def generate_optimized_url(
 
     # Build transformation dictionary
     transformations: dict[str, str | int] = {
-        "format": fmt,
         "quality": quality,
         "fetch_format": fetch_format,
+        "flags": "lossy",
     }
 
     if width:
