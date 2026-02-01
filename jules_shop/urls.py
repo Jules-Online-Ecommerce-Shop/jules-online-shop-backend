@@ -31,6 +31,7 @@ urlpatterns = [
     path(f"{base_url}/catalog/", include("catalog.urls")),
     path(f"{base_url}/orders/", include("orders.urls")),
     path(f"{base_url}/cart/", include("cart.urls")),
+    path(f"{base_url}/auth/", include("users.urls")),
 
     # Spectacular docs urls
     path(f"{base_url}/schema/", SpectacularAPIView.as_view(), name="schema"),
@@ -52,7 +53,7 @@ if DEBUG:
     urlpatterns += [
         path("__debug__/", include(debug_toolbar.urls))
     ]
-    # Uncomment to enable django to server media in dev
+    # Uncomment to enable django to serve media in dev
     # urlpatterns += static(
     #     settings.MEDIA_URL, document_root=settings.MEDIA_ROOT
     # )

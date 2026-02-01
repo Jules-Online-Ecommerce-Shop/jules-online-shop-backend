@@ -29,3 +29,5 @@ whitenoise==6.11.0
 cloudinary==1.44.1
 django-cloudinary-storage==0.3.0
 six==1.17.0
+djangorestframework_simplejwt==5.5.1
+PyJWT==2.11.0
