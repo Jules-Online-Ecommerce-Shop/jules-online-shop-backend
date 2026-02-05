@@ -1,3 +1,4 @@
+from rest_framework import status
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
@@ -6,7 +7,9 @@ from rest_framework.request import Request
 
 from drf_spectacular.utils import extend_schema
 
-from .serializers import EmailTokenObtainPairSerializer, MeSerializer
+from .serializers import (
+    EmailTokenObtainPairSerializer, MeSerializer, RegisterSerializer
+)
 
 
 class EmailTokenObtainPairView(TokenObtainPairView):
@@ -54,3 +57,18 @@ class CustomTokenRefreshView(TokenRefreshView):
     )
     def post(self, request, *args, **kwargs):
         return super().post(request, *args, **kwargs)
+
+
+class RegisterView(APIView):
+
+    @extend_schema(
+        request=RegisterSerializer,
+        responses={201: RegisterSerializer},
+        description="Register a new user"
+    )
+    def post(self, request: Request) -> Response:
+        serializer = RegisterSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        return Response(serializer.data, status=status.HTTP_201_CREATED)

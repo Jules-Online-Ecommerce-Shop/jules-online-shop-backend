@@ -59,3 +59,27 @@ class MeSerializer(serializers.ModelSerializer):
             "profile_image",
         ]
         read_only_fields = fields
+
+
+class RegisterSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(min_length=8, write_only=True)
+    password_confirm = serializers.CharField(write_only=True)
+
+    class Meta:
+        model = User
+        fields = ["email", "username", "password", "password_confirm"]
+
+    def validate(self, attrs: dict[str, Any]):
+        if attrs["password"] != attrs["password_confirm"]:
+            raise serializers.ValidationError("Passwords do not match.")
+
+    def create(self, validated_data: dict[str, Any]):
+        validated_data.pop("password_confirm")
+
+        user = User.objects.create_user(
+            username=validated_data["username"],
+            email=validated_data["email"],
+            password=validated_data["password"],
+        )
+
+        return user
