@@ -1,42 +1,27 @@
 from typing import Any
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework import serializers
-from django.contrib.auth import authenticate
 
 from users.models import User
 
 
 class EmailTokenObtainPairSerializer(TokenObtainPairSerializer):
-    email = serializers.EmailField()
+    username_field = "email"
 
-    def validate(self, attrs: dict[str, Any]) -> dict[str, Any]:
+    def validate(self, attrs):
         email = attrs.get("email")
-        password = attrs.get("username")
+        password = attrs.get("password")
 
-        # Authenticate using email
-        user = authenticate(email=email, password=password)
+        data = super().validate({
+            self.username_field: email,
+            "password": password,
+        })
 
-        if not user:
-            raise serializers.ValidationError("Invalid email or password")
-
-        if not user.is_active:
-            raise serializers.ValidationError("User account is disabled")
-
-        # Use parent to generate tokens
-        data = super().validate(
-            {"username": user.get_username(), "password": password}
-        )
-
-        # Add user info to response
-        data.update(
-            {
-                "user_id": user.id,
-                "email": email,
-                "username": user.get_username(),
-                "is_staff": user.is_staff,
-            }
-        )
-
+        data.update({
+            "user_id": self.user.id,
+            "email": self.user.email,
+            "is_staff": self.user.is_staff,
+        })
         return data
 
 
@@ -72,6 +57,7 @@ class RegisterSerializer(serializers.ModelSerializer):
     def validate(self, attrs: dict[str, Any]):
         if attrs["password"] != attrs["password_confirm"]:
             raise serializers.ValidationError("Passwords do not match.")
+        return attrs
 
     def create(self, validated_data: dict[str, Any]):
         validated_data.pop("password_confirm")
